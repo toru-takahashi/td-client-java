@@ -15,20 +15,19 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package com.treasure_data.client;
+package com.treasure_data.model;
 
-@SuppressWarnings("serial")
-public class ClientException extends Exception {
+public class ExportDataResult extends AbstractResult {
+    private Job job;
 
-    public ClientException(String reason) {
-        super(reason);
+    protected ExportDataResult() {
     }
 
-    public ClientException(Throwable cause) {
-        super(cause);
+    public Job getJob() {
+        return job;
     }
 
-    public ClientException(String reason, Throwable cause) {
-        super(reason, cause);
+    public void setJob(Job job) {
+        this.job = job;
     }
 }

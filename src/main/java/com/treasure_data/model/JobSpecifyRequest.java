@@ -17,13 +17,28 @@
 //
 package com.treasure_data.model;
 
-public class ShowJobResult extends AbstractResult<Job> {
+class JobSpecifyRequest<T> extends AbstractRequest {
+    private String jobId;
 
-    public ShowJobResult(Job job) {
-        super(job);
+    public JobSpecifyRequest() {
     }
 
-    public Job getJob() {
-        return get();
+    public JobSpecifyRequest(String jobId) {
+        this.jobId = jobId;
+    }
+
+    public String getJobId() {
+        return jobId;
+    }
+
+    public void setJobId(String jobId) {
+        this.jobId = jobId;
+    }
+
+    public T withJobId(String jobId) {
+        T c = (T) clone();
+        c.setJobId(jobId);
+        return c;
     }
 }
+

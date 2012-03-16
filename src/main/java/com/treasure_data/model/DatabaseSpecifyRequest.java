@@ -15,21 +15,30 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-package com.treasure_data.client;
+package com.treasure_data.model;
 
-import java.util.logging.Logger;
+class DatabaseSpecifyRequest<T> extends AbstractRequest {
+    private String databaseName;
 
-public abstract class AbstractClientAdaptor implements ClientAdaptor {
-    private static Logger LOG = Logger.getLogger(AbstractClientAdaptor.class.getName());
-
-    private Config conf;
-
-    public AbstractClientAdaptor(Config conf) {
-	this.conf = conf;
+    public DatabaseSpecifyRequest() {
     }
 
-    public Config getConfig() {
-	return conf;
+    public DatabaseSpecifyRequest(String databaseName) {
+        this.databaseName = databaseName;
     }
 
+    public String getDatabaseName() {
+        return databaseName;
+    }
+
+    public void setDatabaeName(String databaseName) {
+        this.databaseName = databaseName;
+    }
+
+    public T withDatabaseName(String databaseName) {
+        T c = (T) clone();
+        c.setDatabaeName(databaseName);
+        return c;
+    }
 }
+

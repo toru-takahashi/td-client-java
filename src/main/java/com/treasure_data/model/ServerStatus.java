@@ -17,32 +17,16 @@
 //
 package com.treasure_data.model;
 
-import java.util.List;
+public class ServerStatus extends AbstractModel {
 
-public class ListJobs extends AbstractListModels<Job> {
+    private String message;
 
-    private long count;
-
-    private long from;
-
-    private long to;
-
-    public ListJobs(long count, long from, long to, List<Job> jobs) {
-        super(jobs);
-        this.count = count;
-        this.from = from;
-        this.to = to;
+    public ServerStatus(String message) {
+        super(null);
+        this.message = message;
     }
 
-    public long getCount() {
-        return count;
-    }
-
-    public long getFrom() {
-        return from;
-    }
-
-    public long getTo() {
-        return to;
+    public String getMessage() {
+        return message;
     }
 }

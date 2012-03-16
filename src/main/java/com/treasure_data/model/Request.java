@@ -19,7 +19,7 @@ package com.treasure_data.model;
 
 import com.treasure_data.auth.TreasureDataCredentials;
 
-public interface Request<T> {
+public interface Request {
 
     TreasureDataCredentials getCredentials();
 

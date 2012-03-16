@@ -17,71 +17,72 @@
 //
 package com.treasure_data.client;
 
-import com.treasure_data.model.CreateDatabaseRequest;
-import com.treasure_data.model.CreateDatabaseResult;
-import com.treasure_data.model.CreateTableRequest;
-import com.treasure_data.model.CreateTableResult;
-import com.treasure_data.model.DeleteDatabaseRequest;
-import com.treasure_data.model.DeleteDatabaseResult;
-import com.treasure_data.model.DeleteTableRequest;
-import com.treasure_data.model.DeleteTableResult;
-import com.treasure_data.model.ExportRequest;
-import com.treasure_data.model.ExportResult;
-import com.treasure_data.model.ImportRequest;
-import com.treasure_data.model.ImportResult;
-import com.treasure_data.model.KillJobRequest;
-import com.treasure_data.model.KillJobResult;
-import com.treasure_data.model.ListDatabasesRequest;
-import com.treasure_data.model.ListDatabasesResult;
-import com.treasure_data.model.ListJobsRequest;
-import com.treasure_data.model.ListJobsResult;
-import com.treasure_data.model.ListTablesRequest;
-import com.treasure_data.model.ListTablesResult;
-import com.treasure_data.model.GetJobResultRequest;
-import com.treasure_data.model.GetJobResultResult;
-import com.treasure_data.model.ServerStatusRequest;
-import com.treasure_data.model.ServerStatusResult;
-import com.treasure_data.model.ShowJobRequest;
-import com.treasure_data.model.ShowJobResult;
-import com.treasure_data.model.SubmitJobRequest;
-import com.treasure_data.model.SubmitJobResult;
 
-public interface ClientAdaptor {
+public interface TreasureDataClientAdaptor {
     // Server Status API
 
-    ServerStatusResult getServerStatus(ServerStatusRequest request) throws ClientException;
+    ServerStatus getServerStatus(ServerStatusRequest request) throws ClientException;
 
     // Database API
 
     ListDatabasesResult listDatabases(ListDatabasesRequest request) throws ClientException;
 
-    CreateDatabaseResult createDatabase(CreateDatabaseRequest request) throws ClientException;
+    List<Database> listDatabases() throws ClientException;
 
-    DeleteDatabaseResult deleteDatabase(DeleteDatabaseRequest request) throws ClientException;
+    Database createDatabase(CreateDatabaseRequest request) throws ClientException;
+
+    Database createDatabase(String databaseName) throws ClientException;
+
+    void deleteDatabase(DeleteDatabaseRequest request) throws ClientException;
+
+    void deleteDatabase(String databaseName) throws ClientException;
 
     // Table API
 
-    ListTablesResult listTables(ListTablesRequest request) throws ClientException;
+    ListTablesResult listTables(ListTablesRequest request) throws ClientException; // array of TableSummary < Table
 
-    CreateTableResult createTable(CreateTableRequest request) throws ClientException;
+    List<TableSummary> listTables(String databaseName) throws ClientException {
+        return listTables(new ListTablesRequest(databaseName)).getTableSummaries();
+    }
 
-    DeleteTableResult deleteTable(DeleteTableRequest request) throws ClientException;
+    Table createTable(CreateTableRequest request) throws ClientException;
 
-    // Import and Export API
+    Table createTable(String databaseName, String tableName) throws ClientException;
 
-    ImportResult importData(ImportRequest request) throws ClientException;
+    TableDescription describeTable(DescribeTableRequest request) throws ClientException;  // TableDescription < TableSummary
 
-    ExportResult exportData(ExportRequest request) throws ClientException;
+    void deleteTable(DeleteTableRequest request) throws ClientException;
+
+    //TODO TableSchema updateTableSchema(UpdateTableSchemaRequest request) throws ClientException;
+
+    // Import API
+
+    ImportDataResult importData(ImportDataRequest request) throws ClientException;
+
+    // Export API
+
+    ExportDataResult exportData(ExportDataRequest request) throws ClientException; // Job
 
     // Job API
 
-    SubmitJobResult submitJob(SubmitJobRequest request) throws ClientException;
+    ListJobsResult listJobs(ListJobsRequest request) throws ClientException; // array of JobSummary < Job
 
-    ListJobsResult listJobs(ListJobsRequest request) throws ClientException;
+    Job submitJob(SubmitJobRequest request) throws ClientException; // Job
 
     KillJobResult killJob(KillJobRequest request) throws ClientException;
 
-    ShowJobResult showJob(ShowJobRequest request) throws ClientException;
+    JobDescription describeJob(DescribeJobRequest request) throws ClientException; // JobDescription < JobSummary
 
-    GetJobResultResult getJobResult(GetJobResultRequest request) throws ClientException;
+    JobResult getJobResult(GetJobResultRequest request) throws ClientException;
+
+    // Job scheduling API
+
+    ListScheduledJobResult listJobSchedules(ListScheduledJobRequest request) throws ClientException;  // JobScheduleSummary < JobSchedule
+
+    List<JobSchedule> listJobSchedules() throws ClientException;
+
+    JobSchedule createJobSchedule(CreateJobScheduleRequest request) throws ClientException;
+
+    void deleteJobSchedule(DeleteJobScheduleRequest request) throws ClientException;
 }
+

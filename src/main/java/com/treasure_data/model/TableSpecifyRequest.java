@@ -17,16 +17,44 @@
 //
 package com.treasure_data.model;
 
-public class DeleteDatabaseResult extends AbstractResult<Database> {
-
+class TableSpecifyRequest<T> extends AbstractRequest {
     private String databaseName;
+    private String tableName;
 
-    public DeleteDatabaseResult(String databaseName) {
-        super(null);
+    public TableSpecifyRequest() {
+    }
+
+    public TableSpecifyRequest(String databaseName, String tableName) {
         this.databaseName = databaseName;
+        this.tableName = tableName;
     }
 
     public String getDatabaseName() {
         return databaseName;
     }
+
+    public String getTableName() {
+        return tableName;
+    }
+
+    public void setDatabaeName(String databaseName) {
+        this.databaseName = databaseName;
+    }
+
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
+    }
+
+    public T withDatabaseName(String databaseName) {
+        T c = (T) clone();
+        c.setDatabaeName(databaseName);
+        return c;
+    }
+
+    public T withTableName(String tableName) {
+        T c = (T) clone();
+        c.setTableName(tableName);
+        return c;
+    }
 }
+

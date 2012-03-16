@@ -17,16 +17,13 @@
 //
 package com.treasure_data.model;
 
-public class CreateDatabaseRequest extends AbstractRequest<Database> {
-
-    private String databaseName;
+public class CreateDatabaseRequest extends DatabaseSpecifyRequest<CreateDatabaseRequest> {
+    public CreateDatabaseRequest() {
+        super();
+    }
 
     public CreateDatabaseRequest(String databaseName) {
-        super(null);
-        this.databaseName = databaseName;
-    }
-
-    public String getDatabaseName() {
-        return databaseName;
+        super(databaseName);
     }
 }
+

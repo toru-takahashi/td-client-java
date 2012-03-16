@@ -19,17 +19,36 @@ package com.treasure_data.model;
 
 import java.util.List;
 
-public class ListTablesResult extends AbstractResult<ListTables> {
+public class ListTablesResult extends AbstractResult {
+    private String databaseName;
+    private List<TableSummary> tableSummaries;
 
-    public ListTablesResult(ListTables tables) {
-        super(tables);
+    public ListTablesResult() {
     }
 
-    public List<Table> getTables() {
-        return get().get();
+    public ListTablesResult(String databaseName) {
+        this.databaseName = databaseName;
     }
 
-    public Table get(String name) {
-        return get().get(name);
+    public ListTablesResult(String databaseName, List<TableSummary> tableSummaries) {
+        this.databaseName = databaseName;
+        this.tableSummaries = tableSummaries;
+    }
+
+    public String getDatabaseName() {
+        return databaseName;
+    }
+
+    public List<TableSummary> getTableSummaries() {
+        return tableSummaries;
+    }
+
+    public void setDatabaseName(String databaseName) {
+        this.databaseName = databaseName;
+    }
+
+    public void setTableSummaries(List<TableSummary> tableSummaries) {
+        this.tableSummaries = tableSummaries;
     }
 }
+

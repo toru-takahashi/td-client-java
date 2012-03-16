@@ -20,141 +20,91 @@ package com.treasure_data.client;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-import com.treasure_data.auth.TreasureDataCredentials;
-import com.treasure_data.model.CreateDatabaseRequest;
-import com.treasure_data.model.CreateDatabaseResult;
-import com.treasure_data.model.CreateTableRequest;
-import com.treasure_data.model.CreateTableResult;
-import com.treasure_data.model.DeleteDatabaseRequest;
-import com.treasure_data.model.DeleteDatabaseResult;
-import com.treasure_data.model.DeleteTableRequest;
-import com.treasure_data.model.DeleteTableResult;
-import com.treasure_data.model.ExportRequest;
-import com.treasure_data.model.ExportResult;
-import com.treasure_data.model.ImportRequest;
-import com.treasure_data.model.ImportResult;
-import com.treasure_data.model.KillJobRequest;
-import com.treasure_data.model.KillJobResult;
-import com.treasure_data.model.ListDatabasesRequest;
-import com.treasure_data.model.ListDatabasesResult;
-import com.treasure_data.model.ListJobsRequest;
-import com.treasure_data.model.ListJobsResult;
-import com.treasure_data.model.ListTablesRequest;
-import com.treasure_data.model.ListTablesResult;
-import com.treasure_data.model.GetJobResultRequest;
-import com.treasure_data.model.GetJobResultResult;
-import com.treasure_data.model.ServerStatusRequest;
-import com.treasure_data.model.ServerStatusResult;
-import com.treasure_data.model.ShowJobRequest;
-import com.treasure_data.model.ShowJobResult;
-import com.treasure_data.model.SubmitJobRequest;
-import com.treasure_data.model.SubmitJobResult;
-
 public class TreasureDataClient {
     private static Logger LOG = Logger.getLogger(TreasureDataClient.class.getName());
 
-    /**
-     * adaptor factory method
-     */
-    static ClientAdaptor createClientAdaptor(
-	    TreasureDataCredentials credentials, Properties props) {
-	Config conf = new Config();
-	conf.setCredentials(credentials);
-	ClientAdaptor clientAdaptor = new HttpClientAdaptor(conf);
-	return clientAdaptor;
-    }
-
     private ClientAdaptor clientAdaptor;
-
-    public TreasureDataClient() {
-        this(System.getProperties());
-    }
-
-    public TreasureDataClient(Properties props) {
-        this(new TreasureDataCredentials(props), props);
-    }
-
-    public TreasureDataClient(TreasureDataCredentials credentials, Properties props) {
-	this.clientAdaptor = createClientAdaptor(credentials, props);
-    }
 
     // Server Status API
 
-    public ServerStatusResult getServerStatus() throws ClientException {
-        return getServerStatus(new ServerStatusRequest());
-    }
-
-    public ServerStatusResult getServerStatus(ServerStatusRequest request)
-            throws ClientException {
-        return clientAdaptor.getServerStatus(request);
-    }
+    ServerStatus getServerStatus(ServerStatusRequest request) throws ClientException;
 
     // Database API
 
-    public ListDatabasesResult listDatabases() throws ClientException {
-        return listDatabases(new ListDatabasesRequest());
+    ListDatabasesResult listDatabases(ListDatabasesRequest request) throws ClientException;
+
+    List<Database> listDatabases() throws ClientException {
+        return listDatabases(new ListDatabasesRequest()).getDatabases();
     }
 
-    public ListDatabasesResult listDatabases(ListDatabasesRequest request)
-            throws ClientException {
-        return clientAdaptor.listDatabases(request);
+    Database createDatabase(CreateDatabaseRequest request) throws ClientException;
+
+    Database createDatabase(String databaseName) throws ClientException {
+        return createDatabase(new CreateDatabaseRequest(databaseName));
     }
 
-    public CreateDatabaseResult createDatabase(CreateDatabaseRequest request)
-            throws ClientException {
-	return clientAdaptor.createDatabase(request);
-    }
+    void deleteDatabase(DeleteDatabaseRequest request) throws ClientException;
 
-    public DeleteDatabaseResult deleteDatabase(DeleteDatabaseRequest request)
-            throws ClientException {
-	return clientAdaptor.deleteDatabase(request);
+    void deleteDatabase(String databaseName) throws ClientException {
+        deleteDatabase(new DeleteDatabaseRequest(databaseName));
     }
 
     // Table API
 
-    public ListTablesResult listTables(ListTablesRequest request) throws ClientException {
-	return clientAdaptor.listTables(request);
+    ListTablesResult listTables(ListTablesRequest request) throws ClientException;
+
+    List<TableSummary> listTables(String databaseName) throws ClientException;
+
+    Table createTable(CreateTableRequest request) throws ClientException;
+
+    Table createTable(String databaseName, String tableName) throws ClientException {
+        return createTable(new CreateTableRequest(databaseName, tableName));
     }
 
-    public CreateTableResult createTable(CreateTableRequest request)
-            throws ClientException {
-	return clientAdaptor.createTable(request);
+    TableDescription describeTable(DescribeTableRequest request) throws ClientException;
+
+    TableDescription describeTable(String databaseName, String tableName) throws ClientException {
+        return describeTable(new DescribeTableRequest(databaseName, tableName));
     }
 
-    public DeleteTableResult deleteTable(DeleteTableRequest request)
-            throws ClientException {
-	return clientAdaptor.deleteTable(request);
+    void deleteTable(DeleteTableRequest request) throws ClientException;
+
+    void deleteTable(String databaseName, String tableName) throws ClientException {
+        deleteTable(new DeleteTableRequest(databaseName, tableName));
     }
 
-    // Import and Export API
+    //TODO TableSchema updateTableSchema(UpdateTableSchemaRequest request) throws ClientException;
 
-    public ImportResult importData(ImportRequest request) throws ClientException {
-        return clientAdaptor.importData(request);
-    }
+    // Import API
 
-    public ExportResult exportData(ExportRequest request) throws ClientException {
-        return clientAdaptor.exportData(request);
-    }
+    ImportDataResult importData(ImportDataRequest request) throws ClientException;
+
+    // Export API
+
+    ExportDataResult exportData(ExportDataRequest request) throws ClientException;
 
     // Job API
 
-    public SubmitJobResult submitJob(SubmitJobRequest request) throws ClientException {
-        return clientAdaptor.submitJob(request);
-    }
+    ListJobsResult listJobs(ListJobsRequest request) throws ClientException;
 
-    public ListJobsResult listJobs(ListJobsRequest request) throws ClientException {
-        return clientAdaptor.listJobs(request);
-    }
+    Job submitJob(SubmitJobRequest request) throws ClientException;
 
-    public KillJobResult killJob(KillJobRequest request) throws ClientException {
-        return clientAdaptor.killJob(request);
-    }
+    KillJobResult killJob(KillJobRequest request) throws ClientException;
 
-    public ShowJobResult showJob(ShowJobRequest request) throws ClientException {
-        return clientAdaptor.showJob(request);
-    }
+    JobDescription describeJob(DescribeJobRequest request) throws ClientException;
 
-    public GetJobResultResult getJobResult(GetJobResultRequest request) throws ClientException {
-        return clientAdaptor.getJobResult(request);
-    }
+    JobResult getJobResult(GetJobResultRequest request) throws ClientException;
+
+    // Job scheduling API
+
+    ListScheduledJobResult listJobSchedules(ListScheduledJobRequest request) throws ClientException;  // JobScheduleSummary < JobSchedule
+
+    List<JobSchedule> listJobSchedules() throws ClientException;
+
+    JobSchedule createJobSchedule(CreateJobScheduleRequest request) throws ClientException;
+
+    void deleteJobSchedule(DeleteJobScheduleRequest request) throws ClientException;
+
+    void deleteJobSchedule(String jobScheduleName) throws ClientException;
 }
+

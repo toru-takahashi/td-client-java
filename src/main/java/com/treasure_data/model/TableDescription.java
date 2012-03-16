@@ -17,10 +17,15 @@
 //
 package com.treasure_data.model;
 
-public class GetJobStatusResult extends AbstractResult<Job> {
-
-    protected GetJobStatusResult(Job job) {
-        super(job);
+public class TableDescription extends TableSummary {
+    public TableDescription() {
+        super();
     }
 
+    public Table(String databaseName, String tableName) {
+        super(databaseName, tableName);
+    }
+
+    // TODO schema, etc
 }
+

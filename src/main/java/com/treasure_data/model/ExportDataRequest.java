@@ -17,13 +17,9 @@
 //
 package com.treasure_data.model;
 
-public class CreateDatabaseResult extends AbstractResult<Database> {
-
-    public CreateDatabaseResult(Database database) {
-        super(database);
-    }
-
-    public Database getDatabase() {
-        return get();
+// TODO
+public class ExportDataRequest extends AbstractRequest {
+    public ExportDataRequest() {
     }
 }
+

@@ -17,14 +17,12 @@
 //
 package com.treasure_data.model;
 
-public class DeleteDatabaseRequest extends AbstractRequest<Database> {
-
-    public DeleteDatabaseRequest(Database database) {
-        super(database);
+public class DeleteDatabaseRequest extends DatabaseSpecifyRequest<T> {
+    public DeleteDatabaseRequest() {
     }
 
-    public Database getDatabase() {
-        return get();
+    public DeleteDatabaseRequest(String databaseName) {
+        super(databaseName);
     }
-
 }
+

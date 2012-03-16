@@ -17,6 +17,5 @@
 //
 package com.treasure_data.model;
 
-public interface Result<T> {
-
+public interface Result {
 }

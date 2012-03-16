@@ -17,26 +17,38 @@
 //
 package com.treasure_data.model;
 
-public class ListJobsRequest extends AbstractRequest<ListJobs> {
-    private long from;
-
-    private long to;
+public class ListJobsRequest extends AbstractRequest {
+    private long offset;
+    private int limit;
 
     public ListJobsRequest() {
-        this(0, 0);
     }
 
-    public ListJobsRequest(long from, long to) {
-        super(null);
-        this.from = from;
-        this.to = to;
+    public void getOffset() {
+        return offset;
     }
 
-    public long getFrom() {
-        return from;
+    public void getLimit() {
+        return limit;
     }
 
-    public long getTo() {
-        return to;
+    public void setOffset(long offset) {
+        this.offset = offset;
+    }
+
+    public void setLimit(int limit) {
+        this.limit = limit;
+    }
+
+    public ListJobsRequest withOffset(long offset) {
+        ListJobsRequest c = (ListJobsRequest) clone();
+        c.setOffset(offset);
+        return c;
+    }
+
+    public ListJobsRequest withLimit(long limit) {
+        ListJobsRequest c = (ListJobsRequest) clone();
+        c.setLimit(limit);
+        return c;
     }
 }

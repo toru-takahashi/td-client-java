@@ -18,57 +18,31 @@
 package com.treasure_data.model;
 
 public class Table extends AbstractModel {
-    public static enum Type {
-        LOG, ITEM, UNKNOWN,
+    private String databaseName;
+    private String tableName;
+
+    public Table() {
     }
 
-    public static Type toType(String typeName) {
-        if (typeName.equals("log")) {
-            return Type.LOG;
-        } else if (typeName.equals("item")) {
-            return Type.ITEM;
-        } else {
-            return Type.UNKNOWN;
-        }
+    public Table(String databaseName, String tableName) {
+        this.tableName = tableName;
+        this.databaseName = databaseName;
     }
 
-    public static String toTypeName(Type type) {
-        switch (type) {
-        case LOG:
-            return "log";
-        case ITEM:
-            return "item";
-        default:
-            return "unknown";
-        }
+    public String getDatabaseName() {
+        return databaseName;
     }
 
-    private Database database;
-
-    private Type type;
-
-    private long count;
-
-    public Table(Database database, String name, Type type) {
-        this(database, name, type, 0);
+    public String getTableName() {
+        return tableName;
     }
 
-    public Table(Database database, String name, Type type, long count) {
-        super(name);
-        this.database = database;
-        this.type = type;
-        this.count = count;
+    public void setDatabaeName(String databaseName) {
+        this.databaseName = databaseName;
     }
 
-    public Database getDatabase() {
-        return database;
-    }
-
-    public Type getType() {
-        return type;
-    }
-
-    public long getCount() {
-        return count;
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
     }
 }
+

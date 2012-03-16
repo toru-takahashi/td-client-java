@@ -17,21 +17,16 @@
 //
 package com.treasure_data.model;
 
-public class ListTablesRequest extends AbstractRequest<ListTables> {
-
-    private Database database;
-
+public class ListTablesRequest extends DatabaseSpecifyRequest {
     public ListTablesRequest() {
-        this(null);
+        super();
     }
 
-    public ListTablesRequest(Database database) {
-        super(null);
-        this.database = database;
+    public ListTablesRequest(String databaseName) {
+        super(databaseName);
     }
 
-    public Database getDatabase() {
-        return database;
-    }
-
+    // pagination (todo)
+    //public void setOffset(int offset);
+    //public void setLimit(int limit);
 }

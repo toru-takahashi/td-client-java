@@ -17,31 +17,13 @@
 //
 package com.treasure_data.model;
 
-public class CreateTableRequest extends AbstractRequest<Table> {
-
-    private Database database;
-
-    private String tableName;
-
-    private Table.Type tableType;
-
-    public CreateTableRequest(Database database, String tableName, Table.Type tableType) {
-        super(null);
-        this.database = database;
-        this.tableName = tableName;
-        this.tableType = tableType;
+public class CreateTableRequest extends TableSpecifyRequest<CreateTableRequest> {
+    public TableSpecifyRequest() {
+        super();
     }
 
-    public Database getDatabase() {
-        return database;
+    public TableSpecifyRequest(String databaseName, String tableName) {
+        super(databaseName, tableName);
     }
-
-    public String getTableName() {
-        return tableName;
-    }
-
-    public Table.Type getTableType() {
-        return tableType;
-    }
-
 }
+

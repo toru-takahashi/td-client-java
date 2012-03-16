@@ -19,13 +19,10 @@ package com.treasure_data.model;
 
 import com.treasure_data.auth.TreasureDataCredentials;
 
-abstract class AbstractRequest<T extends AbstractModel> implements Request<T> {
+abstract class AbstractRequest implements Request {
     private TreasureDataCredentials credentials;
 
-    private T model;
-
-    protected AbstractRequest(T model) {
-        this.model = model;
+    protected AbstractRequest() {
     }
 
     public TreasureDataCredentials getCredentials() {
@@ -35,8 +32,5 @@ abstract class AbstractRequest<T extends AbstractModel> implements Request<T> {
     public void setCredentials(TreasureDataCredentials credentials) {
         this.credentials = credentials;
     }
-
-    protected T get() {
-        return model;
-    }
 }
+

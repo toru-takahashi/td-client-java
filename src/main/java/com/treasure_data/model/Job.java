@@ -21,6 +21,8 @@ public class Job extends AbstractModel {
 
     public static enum Status {
         QUEUED, BOOTING, RUNNING, SUCCESS, ERROR, KILLED, UNKNOWN,
+        // TODO boolean isRunning();
+        // TODO boolean isFinished();
     }
 
     public static Status toStatus(String statusName) {
@@ -68,124 +70,24 @@ public class Job extends AbstractModel {
         }
     }
 
-    public static enum Type {
-        HIVE, UNKNOWN,
+    private String jobId;
+
+    private String jobType;
+
+    public Job() {
     }
 
-    public static Type toType(String typeName) {
-        if (typeName == null) {
-            throw new NullPointerException();
-        }
-
-        if (typeName.equals("hive")) {
-            return Type.HIVE;
-        } else {
-            return Type.UNKNOWN;
-        }
+    public Job(String jobId, String jobType) {
+        this.jobId = jobId;
+        this.jobType = jobType;
     }
 
-    public static String toTypeName(Type type) {
-        if (type == null) {
-            throw new NullPointerException();
-        }
-
-        switch (type) {
-        case HIVE:
-            return "hive";
-        default:
-            return "unknown";
-        }
+    public String getJobId() {
+        return jobId;
     }
 
-    private Type type;
-
-    private Database database;
-
-    private String url;
-
-    private Status status;
-
-    private String createdAt;
-
-    private String startAt;
-
-    private String endAt;
-
-    private String query;
-
-    private String resultTable;
-
-    public Job(String jobID) {
-        super(jobID);
-    }
-
-    public Job(String jobID, Job.Type type) {
-        super(jobID);
-        this.type = type;
-    }
-
-    public Job(String jobID, Job.Type type, Database database, String url) {
-        super(jobID);
-        this.type = type;
-        this.database = database;
-        this.url = url;
-    }
-
-    public Job(String jobID, Job.Type type, Database database, String query, String url) {
-        super(jobID);
-        this.type = type;
-        this.database = database;
-        this.query = query;
-        this.url = url;
-    }
-
-    public Job(String jobID, Job.Type type, Status status, String startAt,
-            String endAt, String query, String resultTable) {
-        super(jobID);
-        this.type = type;
-        this.status = status;
-        this.startAt = startAt;
-        this.endAt = endAt;
-        this.query = query;
-        this.resultTable = resultTable;
-    }
-
-    public String getJobID() {
-        return getName();
-    }
-
-    public Job.Type getType() {
-        return type;
-    }
-    public Database getDatabase() {
-        return database;
-    }
-
-    public String getURL() {
-        return url;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public String getCreatedAt() {
-        return createdAt;
-    }
-
-    public String getStartAt() {
-        return startAt;
-    }
-
-    public String getEndAt() {
-        return endAt;
-    }
-
-    public String getQuery() {
-        return query;
-    }
-
-    public String getResultTable() {
-        return resultTable;
+    public String getJobType() {
+        return jobType;
     }
 }
+

@@ -17,6 +17,12 @@
 //
 package com.treasure_data.model;
 
-public class Schema extends AbstractModel {
+public class DescribeJobRequest extends JobSpecifyRequest<DescribeJobRequest> {
+    public DescribeJobRequest() {
+    }
 
+    public DescribeJobRequest(String jobId) {
+        super(jobId);
+    }
 }
+

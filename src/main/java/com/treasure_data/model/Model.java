@@ -17,7 +17,6 @@
 //
 package com.treasure_data.model;
 
-interface Model {
-
-    String getName();
+public interface Model {
 }
+

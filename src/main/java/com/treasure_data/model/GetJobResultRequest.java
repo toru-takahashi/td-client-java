@@ -17,13 +17,12 @@
 //
 package com.treasure_data.model;
 
-public class GetJobResultRequest extends AbstractRequest<JobResult> {
-
-    public GetJobResultRequest(JobResult result) {
-        super(result);
+public class GetJobResultRequest extends JobSpecifyRequest<GetJobResultRequest> {
+    public GetJobResultRequest() {
     }
 
-    public JobResult getJobResult() {
-        return get();
+    public GetJobResultRequest(String jobId) {
+        super(jobId);
     }
 }
+

@@ -17,18 +17,13 @@
 //
 package com.treasure_data.model;
 
-public class DeleteTableRequest extends AbstractRequest<Table> {
-
-    public DeleteTableRequest(Table table) {
-        super(table);
+public class DeleteTableRequest extends TableSpecifyRequest<DeleteTableRequest> {
+    public DeleteTableRequest() {
+        super();
     }
 
-    public Database getDatabase() {
-        return get().getDatabase();
+    public DeleteTableRequest(String databaseName, String tableName) {
+        super(databaseName, tableName);
     }
-
-    public Table getTable() {
-        return get();
-    }
-
 }
+

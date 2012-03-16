@@ -17,11 +17,23 @@
 //
 package com.treasure_data.model;
 
-import java.util.List;
+public class TableSummary extends Table {
+    private long count;
 
-public class ListTables extends AbstractListModels<Table> {
+    public TableSummary() {
+        super();
+    }
 
-    public ListTables(List<Table> tables) {
-        super(tables);
+    public TableSummary(String databaseName, String tableName) {
+        super(databaseName, tableName);
+    }
+
+    public long getCount() {
+        return count;
+    }
+
+    public long setCount(long count) {
+        this.count = count;
     }
 }
+

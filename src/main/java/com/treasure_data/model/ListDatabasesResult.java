@@ -19,17 +19,21 @@ package com.treasure_data.model;
 
 import java.util.List;
 
-public class ListDatabasesResult extends AbstractResult<ListDatabases> {
+public class ListDatabasesResult extends AbstractResult {
+    private List<Database> databases;
 
-    public ListDatabasesResult(ListDatabases databases) {
-        super(databases);
+    public ListDatabasesResult() {
+    }
+
+    public ListDatabasesResult(List<Database> databases) {
+        this.databases = databases;
     }
 
     public List<Database> getDatabases() {
-        return get().get();
+        return databases;
     }
 
-    public Database getDatabase(String name) {
-        return get().get(name);
+    public void setDatabases(List<Database> databases) {
+        this.databases = databases;
     }
 }

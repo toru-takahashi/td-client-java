@@ -17,58 +17,37 @@
 //
 package com.treasure_data.model;
 
-public class JobResult extends AbstractModel {
+public JobResult extends AbstractResult {
+    private String jobId;
 
-    public static enum Format {
-        MSGPACK, JSON, UNKNOWN,
+    private String format;
+
+    public JobResult() {
     }
 
-    public static Format toFormat(String formatName) {
-        if (formatName.equals("msgpack")) {
-            return Format.MSGPACK;
-        } else if (formatName.equals("json")) {
-            return Format.JSON;
-        } else {
-            return Format.UNKNOWN;
-        }
-    }
-
-    public static String toFormatName(Format format) {
-        switch (format) {
-        case MSGPACK:
-            return "msgpack";
-        case JSON:
-            return "json";
-        default:
-            return "unknown";
-        }
-    }
-
-    private Job job;
-
-    private Format format;
-
-    private org.msgpack.type.Value result;
-
-    public JobResult(Job job, Format format) {
-        super(job.getJobID());
-        this.job = job;
+    public JobResult(String jobId, String format) {
+        this.jobId;
         this.format = format;
     }
 
-    public Job getJob() {
-        return job;
+    public String getJobId() {
+        return jobId;
     }
 
-    public void setResult(org.msgpack.type.Value result) {
-        this.result = result;
-    }
-
-    public org.msgpack.type.Value getResult() {
-        return result;
-    }
-
-    public Format getFormat() {
+    public String getFormat() {
         return format;
     }
+
+    public void setJobId(String jobId) {
+        this.jobId = jobId;
+    }
+
+    public void setFormat(String format) {
+        this.format = format;
+    }
+
+    // TODO
+    // long getSize();
+    // InputStream getInputStream();
 }
+

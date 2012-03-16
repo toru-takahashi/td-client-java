@@ -17,11 +17,12 @@
 //
 package com.treasure_data.model;
 
-import java.util.List;
+public class JobDescription extends JobSummary {
+    // TODO private String logs;
 
-public class ListDatabases extends AbstractListModels<Database> {
-
-    public ListDatabases(List<Database> list) {
-        super(list);
+    public JobDescription(String jobId, Type jobType) {
+        super(jobType, jobType);
     }
+
 }
+

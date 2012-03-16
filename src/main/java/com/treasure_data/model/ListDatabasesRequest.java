@@ -17,10 +17,13 @@
 //
 package com.treasure_data.model;
 
-public class ListDatabasesRequest extends AbstractRequest<ListDatabases> {
+public class ListDatabasesRequest extends AbstractRequest {
 
     public ListDatabasesRequest() {
-        super(null);
     }
 
+    // pagination (todo)
+    //public void setOffset(int offset);
+    //public void setLimit(int limit);
 }
+

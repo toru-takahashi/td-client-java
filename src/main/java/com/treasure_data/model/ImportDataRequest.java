@@ -17,7 +17,7 @@
 //
 package com.treasure_data.model;
 
-public class ImportRequest extends AbstractRequest<Table> {
+public class ImportDataRequest extends TableSpecifyRequest<ImportDataRequest> {
 
     public static enum Format {
         MSGPACKGZ, UNKNOWN,
@@ -40,25 +40,47 @@ public class ImportRequest extends AbstractRequest<Table> {
         }
     }
 
+    private ByteBuffer data;
+
     private Format format;
 
-    private byte[] bytes;
-
-    public ImportRequest(Table table, Format format, byte[] bytes) {
-        super(table);
-        this.format = format;
-        this.bytes = bytes;
+    public ImportDataRequest() {
+        super();
     }
 
-    public Table getTable() {
-        return get();
+    public ImportDataRequest(String databaseName, String tableName, ByteBuffer data, Format format) {
+        super(databaseName, tableName);
+        super(table);
+        this.data = data;
+        this.format = format;
+    }
+
+    public ByteBuffer getData() {
+        return data;
     }
 
     public Format getFormat() {
         return format;
     }
 
-    public byte[] getBytes() {
-        return bytes;
+    public ByteBuffer setData() {
+        return data;
+    }
+
+    public Format setFormat() {
+        return format;
+    }
+
+    public ImportDataRequest withData(ByteBuffer data) {
+        ImportDataRequest c = (ImportDataRequest) clone();
+        c.setData(data);
+        return c;
+    }
+
+    public ImportDataRequest withFormat(Format format) {
+        ImportDataRequest c = (ImportDataRequest) clone();
+        c.setFormat(format);
+        return c;
     }
 }
+

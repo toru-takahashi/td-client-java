@@ -17,17 +17,23 @@
 //
 package com.treasure_data.model;
 
-public class GetJobResultResult extends AbstractResult<JobResult> {
+import java.util.List;
 
-    public GetJobResultResult(JobResult result) {
-        super(result);
+public class ListDatabasesResult extends AbstractResult {
+    private List<Database> databases;
+
+    public ListDatabasesResult() {
     }
 
-    public JobResult getJobResult() {
-        return get();
+    public ListDatabasesResult(List<Database> databases) {
+        this.databases = databases;
     }
 
-    public Job getJob() {
-        return get().getJob();
+    public List<Database> getDatabases() {
+        return databases;
+    }
+
+    public void setDatabases(List<Database> databases) {
+        this.databases = databases;
     }
 }

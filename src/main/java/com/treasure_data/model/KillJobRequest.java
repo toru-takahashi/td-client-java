@@ -17,14 +17,12 @@
 //
 package com.treasure_data.model;
 
-public class KillJobRequest extends AbstractRequest<Job> {
-
-    public KillJobRequest(Job job) {
-        super(job);
+public class KillJobRequest extends JobSpecifyRequest<KillJobRequest> {
+    public KillJobRequest() {
     }
 
-    public Job getJob() {
-        return get();
+    public KillJobRequest(String jobId) {
+        super(jobId);
     }
-
 }
+
