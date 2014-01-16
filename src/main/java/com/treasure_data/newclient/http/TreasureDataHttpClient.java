@@ -178,7 +178,7 @@ public class TreasureDataHttpClient implements Closeable {
     private void pauseExponentially(final int retryCount) throws TreasureDataClientException {
         long scaleFactor = 300;
         long delay = (long) (Math.pow(2, retryCount) * scaleFactor);
-        delay = Math.min(delay, Constants.MAX_BACKOFF_IN_MILLISECONDS);
+        delay = Math.min(delay, Configuration.MAX_BACKOFF_IN_MILLISECONDS);
 
         LOG.fine(String.format("will retry in %dms, attempt number: %d",
                 delay, retryCount));

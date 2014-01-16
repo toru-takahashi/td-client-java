@@ -2,7 +2,7 @@ package com.treasure_data.newclient;
 
 import java.util.Properties;
 
-public class Configuration {
+public class Configuration implements Constants {
 
     private Protocol protocol = Protocol.HTTP;
 

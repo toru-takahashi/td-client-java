@@ -49,7 +49,7 @@ public abstract class AbstractTreasureDataClient implements Closeable {
          * we'll defer to the default protocol specified in the client
          * configuration.
          */
-        if (endpoint.contains("://") == false) {
+        if (!endpoint.contains("://")) {
             endpoint = conf.getProtocol().toString() + "://" + endpoint;
         }
 
