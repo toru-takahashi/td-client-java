@@ -53,6 +53,7 @@
 
   <properties>
     <!--  version properties for dependencies -->
+    <httpclient.version>4.1</httpclient.version>
     <msgpack.version>0.6.7</msgpack.version>
     <junit.version>4.8.2</junit.version>
     <mockito.version>1.9.5</mockito.version>
@@ -82,6 +83,11 @@
       <groupId>org.msgpack</groupId>
       <artifactId>msgpack</artifactId>
       <version>${msgpack.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>${httpclient.version}</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
