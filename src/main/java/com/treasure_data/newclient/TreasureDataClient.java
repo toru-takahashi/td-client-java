@@ -7,20 +7,17 @@ import com.treasure_data.newclient.auth.DefaultSigner;
 import com.treasure_data.newclient.auth.Signer;
 import com.treasure_data.newclient.auth.TreasureDataCredentials;
 import com.treasure_data.newclient.http.ExecutionContext;
-import com.treasure_data.newclient.http.HttpMethodName;
 import com.treasure_data.newclient.http.HttpResponseHandler;
 import com.treasure_data.newclient.http.DefaultHttpResponseHandler;
-import com.treasure_data.newclient.http.ResourcePath;
 import com.treasure_data.newclient.model.ListTablesRequest;
 import com.treasure_data.newclient.model.ServerStatus;
 import com.treasure_data.newclient.model.Table;
-import com.treasure_data.newclient.model.transform.JsonListTableIntializer;
+import com.treasure_data.newclient.model.transform.JsonListTablesIntializer;
 import com.treasure_data.newclient.model.transform.JsonResponseParser;
 import com.treasure_data.newclient.model.GetServerStatusRequest;
 import com.treasure_data.newclient.model.transform.DefaultUnmarshaller;
-import com.treasure_data.newclient.model.transform.JsonServerStatusIntializer;
+import com.treasure_data.newclient.model.transform.JsonGetServerStatusIntializer;
 import com.treasure_data.newclient.model.transform.ResponseModelInitializer;
-import com.treasure_data.newclient.model.transform.ResponseParser;
 
 public class TreasureDataClient extends AbstractTreasureDataClient {
 
@@ -33,13 +30,7 @@ public class TreasureDataClient extends AbstractTreasureDataClient {
     public ServerStatus getServerStatus()
         throws TreasureDataClientException, TreasureDataServiceException {
         GetServerStatusRequest request = new GetServerStatusRequest();
-        final String resourcePath = String.format(ResourcePath.V3_SERVER_STATUS);
-
-        Request<GetServerStatusRequest> req = createRequest(resourcePath, request,
-                HttpMethodName.GET);
-
-        return invoke(req, new JsonResponseParser<ServerStatus>(),
-                new JsonServerStatusIntializer());
+        return invoke(request, new JsonGetServerStatusIntializer());
     }
 
     public List<Table> listTables(String databaseName)
@@ -51,41 +42,28 @@ public class TreasureDataClient extends AbstractTreasureDataClient {
 
     public List<Table> listTables(ListTablesRequest request)
             throws TreasureDataClientException, TreasureDataServiceException {
-        if (request == null) {
-            throw new NullPointerException("ListTablesRequest object is null");
+        return invoke(request, new JsonListTablesIntializer());
+    }
+
+    protected <M, REQ extends TreasureDataServiceRequest> M invoke(REQ originalRequest,
+            ResponseModelInitializer<M> modelInit)
+            throws TreasureDataClientException, TreasureDataServiceException {
+        if (originalRequest == null) {
+            throw new NullPointerException("origina request is null.");
         }
 
-        // validate database name
-        request.validate();
+        originalRequest.validate();
 
-        // build resource path
-        final String resourcePath = String.format(ResourcePath.V3_TABLES_LIST,
-                request.getDatabaseName());
+        Request<REQ> request = new DefaultRequest<REQ>(originalRequest);
+        request.setResourcePath(originalRequest.getResourcePath());
+        request.setHttpMethod(originalRequest.getHttpMethodName());
+        request.setEndpoint(endpoint);
 
-        // create request
-        Request<ListTablesRequest> req = createRequest(resourcePath, request,
-                HttpMethodName.GET);
-
-        return invoke(req, new JsonResponseParser<List<Table>>(),
-                new JsonListTableIntializer());
-    }
-
-    protected <REQ extends TreasureDataServiceRequest> Request<REQ> createRequest(
-            final String resourcePath, final REQ request, final HttpMethodName m) {
-        Request<REQ> req = new DefaultRequest<REQ>(request);
-        req.setHttpMethod(m);
-        req.setResourcePath(resourcePath);
-        req.setEndpoint(endpoint);
-        return req;
-    }
-
-    protected <M, REQ extends TreasureDataServiceRequest> M invoke(
-            Request<REQ> request,
-            ResponseParser<M> responseParser,
-            ResponseModelInitializer<M> init)
-                    throws TreasureDataServiceException, TreasureDataClientException {
-        return invoke(request, new DefaultHttpResponseHandler<M>(
-                new DefaultUnmarshaller<M>(responseParser, init)));
+        DefaultUnmarshaller<M> unmarshaller = new DefaultUnmarshaller<M>(
+                new JsonResponseParser<M>(), modelInit);
+        HttpResponseHandler<TreasureDataServiceResponse<M>> responseHandler =
+                new DefaultHttpResponseHandler<M>(unmarshaller);
+        return invoke(request, responseHandler);
     }
 
     protected <M, REQ extends TreasureDataServiceRequest> M invoke(

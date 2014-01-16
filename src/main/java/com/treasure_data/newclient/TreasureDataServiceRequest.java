@@ -3,6 +3,7 @@ package com.treasure_data.newclient;
 import java.util.Map;
 
 import com.treasure_data.newclient.auth.TreasureDataCredentials;
+import com.treasure_data.newclient.http.HttpMethodName;
 
 public interface TreasureDataServiceRequest {
 
@@ -12,4 +13,6 @@ public interface TreasureDataServiceRequest {
     TreasureDataCredentials getCredentials();
 
     void validate() throws TreasureDataClientException;
+    String getResourcePath();
+    HttpMethodName getHttpMethodName();
 }
