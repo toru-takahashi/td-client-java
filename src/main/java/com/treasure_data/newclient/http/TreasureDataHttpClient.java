@@ -14,6 +14,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -122,7 +123,7 @@ public class TreasureDataHttpClient implements Closeable {
                             httpRequest, httpResponse, context);
                 } else {
                     exception = handleErrorResponse(request, errorResponseHandler,
-                            httpRequest, httpResponse);
+                            httpRequest, httpResponse, context);
 
                     if (!shouldRetry(httpRequest, exception, retryCount)) {
                         throw exception;
@@ -196,16 +197,18 @@ public class TreasureDataHttpClient implements Closeable {
             Request<REQ> request,
             HttpResponseHandler<TreasureDataServiceResponse<TreasureDataServiceException>> errorResponseHandler,
             HttpRequestBase httpRequest,
-            org.apache.http.HttpResponse apacheHttpResponse)
+            org.apache.http.HttpResponse apacheHttpResponse,
+            ExecutionContext context)
                     throws IOException, TreasureDataServiceException {
-        int status = apacheHttpResponse.getStatusLine().getStatusCode();
         HttpResponse httpResponse = createResponse(request, httpRequest, apacheHttpResponse);
-        TreasureDataServiceResponse<TreasureDataServiceException> response = null;
-        TreasureDataServiceException exception = null;
+        StatusLine stat = apacheHttpResponse.getStatusLine();
+        int status = stat.getStatusCode();
 
+        TreasureDataServiceException exception = null;
         try {
-            response = errorResponseHandler.handle(httpResponse);
-            exception = response.getResult();
+            exception = errorResponseHandler.handle(httpResponse).getResult();
+            exception.setStatusCode(status);
+            exception.setErrorCode(stat.getReasonPhrase());
             LOG.fine("Received error response: " + exception.toString());
         } catch (Exception e) {
             // If the errorResponseHandler doesn't work, then check for error
@@ -213,12 +216,10 @@ public class TreasureDataHttpClient implements Closeable {
             if (status == 413) {
                 exception = new TreasureDataServiceException("Request entity too large");
                 exception.setStatusCode(413);
-                exception.setErrorType(TreasureDataServiceException.ErrorType.Client);
                 exception.setErrorCode("Request entity too large");
             } else if (status == 503 && "Service Unavailable".equalsIgnoreCase(apacheHttpResponse.getStatusLine().getReasonPhrase())) {
                 exception = new TreasureDataServiceException("Service unavailable");
                 exception.setStatusCode(503);
-                exception.setErrorType(TreasureDataServiceException.ErrorType.Service);
                 exception.setErrorCode("Service unavailable");
             } else {
                 String errorMessage = "Unable to unmarshall error response (" + e.getMessage() + ")";

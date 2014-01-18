@@ -1,14 +1,7 @@
 package com.treasure_data.newclient;
 
 public class TreasureDataServiceException extends TreasureDataClientException {
-    public enum ErrorType {
-        Client,
-        Service,
-        Unknown
-    }
-
     private String errorCode;
-    private ErrorType errorType = ErrorType.Unknown;
     private int statusCode;
 
     public TreasureDataServiceException(String message) {
@@ -25,14 +18,6 @@ public class TreasureDataServiceException extends TreasureDataClientException {
 
     public String getErrorCode() {
         return errorCode;
-    }
-
-    public void setErrorType(ErrorType errorType) {
-        this.errorType = errorType;
-    }
-
-    public ErrorType getErrorType() {
-        return errorType;
     }
 
     public void setStatusCode(int statusCode) {

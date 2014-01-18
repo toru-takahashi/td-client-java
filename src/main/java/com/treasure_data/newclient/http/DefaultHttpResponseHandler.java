@@ -2,7 +2,6 @@ package com.treasure_data.newclient.http;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -34,10 +33,6 @@ public class DefaultHttpResponseHandler<M>
         }
 
         return response;
-    }
-
-    public Map<String, String> getResourseHeaders() {
-        return responseHeaders;
     }
 
 }
