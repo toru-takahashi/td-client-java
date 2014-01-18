@@ -1,6 +1,7 @@
 package com.treasure_data.newclient.model;
 
 public class ServerStatus {
+    public static final String STATUS = "status";
 
     private String status;
 
@@ -13,5 +14,11 @@ public class ServerStatus {
 
     public String getStatus() {
         return status;
+    }
+
+    public static ServerStatus createInstance(String status) {
+        ServerStatus stat = new ServerStatus();
+        stat.setStatus(status);
+        return stat;
     }
 }

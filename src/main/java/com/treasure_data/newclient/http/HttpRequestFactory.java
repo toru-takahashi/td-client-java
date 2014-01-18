@@ -1,5 +1,6 @@
 package com.treasure_data.newclient.http;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -12,6 +13,7 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.params.CoreProtocolPNames;
@@ -49,12 +51,16 @@ public class HttpRequestFactory {
         HttpRequestBase httpRequest;
         if (request.getHttpMethod() == HttpMethodName.POST) {
             HttpPost postMethod = new HttpPost(uri);
-
-            if (request.getContent() == null && encodedParams != null) {
-                postMethod.setEntity(newStringEntity(encodedParams));
-            } else {
-                postMethod.setEntity(new RepeatableInputStreamRequestEntity(request));
-            }
+            BasicHttpEntity entity = new BasicHttpEntity();
+            entity.setContent(new ByteArrayInputStream(new byte[0]));
+            entity.setContentLength(0);
+            postMethod.setEntity(entity);
+//
+//            if (request.getContent() == null && encodedParams != null) {
+//                postMethod.setEntity(newStringEntity(encodedParams));
+//            } else {
+//                postMethod.setEntity(new RepeatableInputStreamRequestEntity(request));
+//            }
             httpRequest = postMethod;
         } else if (request.getHttpMethod() == HttpMethodName.PUT) {
             HttpPut putMethod = new HttpPut(uri);

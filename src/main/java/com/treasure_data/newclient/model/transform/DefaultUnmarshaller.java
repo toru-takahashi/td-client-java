@@ -14,7 +14,7 @@ public class DefaultUnmarshaller<M> extends AbstractUnmarshaller<M, InputStream>
 
     @Override
     public M unmarshall(InputStream in) throws IOException, TreasureDataClientException {
-        parser.parseInputStream(init, in);
+        parser.parse(init, in);
         return init.create(parser);
     }
 

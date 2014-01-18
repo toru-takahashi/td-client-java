@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class JsonResponseParser<M> extends AbstractResponseParser<M> {
@@ -19,7 +20,7 @@ public class JsonResponseParser<M> extends AbstractResponseParser<M> {
     }
 
     @Override
-    public void parseInputStream(ResponseModelInitializer<M> init, InputStream in)
+    public void parse(ResponseModelInitializer<M> init, InputStream in)
             throws IOException {
         StringBuilder sbuf = new StringBuilder();
         BufferedReader reader = null;
@@ -42,6 +43,6 @@ public class JsonResponseParser<M> extends AbstractResponseParser<M> {
         }
 
         jsonText = sbuf.toString();
-        System.out.println("json text: " + jsonText);
+        LOG.log(Level.FINE, "json text: " + jsonText);
     }
 }

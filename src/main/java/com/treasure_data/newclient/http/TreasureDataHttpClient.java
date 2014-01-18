@@ -3,6 +3,7 @@ package com.treasure_data.newclient.http;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +19,6 @@ import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpRequestBase;
 
 import com.treasure_data.newclient.Configuration;
-import com.treasure_data.newclient.Constants;
 import com.treasure_data.newclient.Request;
 import com.treasure_data.newclient.TreasureDataClientException;
 import com.treasure_data.newclient.TreasureDataServiceException;
@@ -44,9 +44,9 @@ public class TreasureDataHttpClient implements Closeable {
         this.httpClient = httpClientFactory.createHttpClient(conf);
     }
 
-    public <T> T execute(
-            Request<?> request,
-            HttpResponseHandler<TreasureDataServiceResponse<T>> responseHandler,
+    public <M, REQ> M execute(
+            Request<REQ> request,
+            HttpResponseHandler<TreasureDataServiceResponse<M>> responseHandler,
             HttpResponseHandler<TreasureDataServiceException> errorResponseHandler,
             ExecutionContext context)
                     throws TreasureDataClientException, TreasureDataServiceException {
@@ -64,9 +64,9 @@ public class TreasureDataHttpClient implements Closeable {
         return executeHelper(request, responseHandler, errorResponseHandler, context);
     }
 
-    private <T extends Object, REQ> T executeHelper(
+    private <M, REQ> M executeHelper(
             Request<REQ> request,
-            HttpResponseHandler<TreasureDataServiceResponse<T>> responseHandler,
+            HttpResponseHandler<TreasureDataServiceResponse<M>> responseHandler,
             HttpResponseHandler<TreasureDataServiceException> errorResponseHandler,
             ExecutionContext context)
                     throws TreasureDataClientException, TreasureDataServiceException {
@@ -90,7 +90,7 @@ public class TreasureDataHttpClient implements Closeable {
             }
 
             HttpRequestBase httpRequest = null;
-            org.apache.http.HttpResponse response = null;
+            org.apache.http.HttpResponse httpResponse = null;
 
             try {
                 // sign the rquest if a signer was provided
@@ -105,10 +105,6 @@ public class TreasureDataHttpClient implements Closeable {
 
                 httpRequest = httpRequestFactory.createHttpRequest(request, conf, entity, context);
 
-                if (httpRequest instanceof HttpEntityEnclosingRequest) {
-                    entity = ((HttpEntityEnclosingRequest) httpRequest).getEntity();
-                }
-
                 if (redirectedURI != null) {
                     httpRequest.setURI(redirectedURI);
                 }
@@ -118,28 +114,15 @@ public class TreasureDataHttpClient implements Closeable {
                     pauseExponentially(retryCount);
                 }
                 
-                if (entity != null) {
-                    InputStream content = entity.getContent();
-                    if ( retryCount > 0 ) {
-                        if (content.markSupported()) {
-                            content.reset();
-                            content.mark(-1);
-                        }
-                    } else {
-                        if (content.markSupported()) {
-                            content.mark(-1);
-                        }
-                    }
-                }
-
                 exception = null;
+                httpResponse = httpClient.execute(httpRequest);
 
-                response = httpClient.execute(httpRequest);
-
-                if (isRequestSuccessful(response)) {
-                    return handleResponse(request, responseHandler, httpRequest, response, context);
+                if (isRequestSuccessful(httpResponse)) {
+                    return handleResponse(request, responseHandler,
+                            httpRequest, httpResponse, context);
                 } else {
-                    exception = handleErrorResponse(request, errorResponseHandler, httpRequest, response);
+                    exception = handleErrorResponse(request, errorResponseHandler,
+                            httpRequest, httpResponse);
 
                     if (!shouldRetry(httpRequest, exception, retryCount)) {
                         throw exception;
@@ -162,9 +145,9 @@ public class TreasureDataHttpClient implements Closeable {
                 retryCount++;
 
                 try {
-                    response.getEntity().getContent().close();
+                    httpResponse.getEntity().getContent().close();
                 } catch (Throwable t) {
-                    LOG.info("");
+                    LOG.log(Level.FINE, "during close method", t);
                 }
             }
         }
@@ -192,22 +175,16 @@ public class TreasureDataHttpClient implements Closeable {
     private <T, REQ> T handleResponse(
             Request<REQ> request,
             HttpResponseHandler<TreasureDataServiceResponse<T>> responseHandler,
-            HttpRequestBase method,
+            HttpRequestBase httpRequest,
             org.apache.http.HttpResponse apacheHttpResponse,
             ExecutionContext context)
                     throws IOException, TreasureDataClientException {
-        HttpResponse httpResponse = createResponse(method, request, apacheHttpResponse);
-        if (method instanceof HttpEntityEnclosingRequest) {
-            HttpEntityEnclosingRequest httpEntityEnclosingRequest = (HttpEntityEnclosingRequest) method;
-            httpResponse.setContent(new HttpMethodReleaseInputStream(httpEntityEnclosingRequest));
-        }
-
+        HttpResponse httpResponse = createResponse(httpRequest, request, apacheHttpResponse);
         try {
             CountingInputStream countingInputStream =
                     new CountingInputStream(httpResponse.getContent());
             httpResponse.setContent(countingInputStream);
-            TreasureDataServiceResponse<? extends T> response = responseHandler.handle(httpResponse);
-
+            TreasureDataServiceResponse<T> response = responseHandler.handle(httpResponse);
             return response.getResult();
         } catch (Exception e) {
             String errorMessage = "Unable to unmarshall response (" + e.getMessage() + ")";

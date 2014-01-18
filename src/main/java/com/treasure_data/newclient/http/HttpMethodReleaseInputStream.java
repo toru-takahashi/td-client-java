@@ -12,7 +12,7 @@ import org.apache.http.client.methods.AbortableHttpRequest;
 public class HttpMethodReleaseInputStream extends InputStream {
     private static final Logger LOG = Logger.getLogger(HttpMethodReleaseInputStream.class.getName());
 
-    private InputStream inputStream = null;
+    private InputStream in = null;
     private HttpEntityEnclosingRequest httpRequest = null;
     private boolean alreadyReleased = false;
     private boolean underlyingStreamConsumed = false;
@@ -21,7 +21,7 @@ public class HttpMethodReleaseInputStream extends InputStream {
         this.httpRequest = httpMethod;
 
         try {
-            this.inputStream = httpMethod.getEntity().getContent();
+            in = httpMethod.getEntity().getContent();
         } catch (IOException e) {
             LOG.log(Level.WARNING, "Unable to obtain HttpMethod's response data stream", e);
             try {
@@ -29,7 +29,7 @@ public class HttpMethodReleaseInputStream extends InputStream {
             } catch (Exception ex) {
                 // ignore
             }
-            this.inputStream = new ByteArrayInputStream(new byte[] {}); // Empty input stream;
+            in = new ByteArrayInputStream(new byte[] {}); // Empty input stream;
         }
     }
 
@@ -40,7 +40,7 @@ public class HttpMethodReleaseInputStream extends InputStream {
     @Override
     public int read() throws IOException {
         try {
-            int read = inputStream.read();
+            int read = in.read();
             if (read == -1) {
                 underlyingStreamConsumed = true;
                 if (!alreadyReleased) {
@@ -66,14 +66,14 @@ public class HttpMethodReleaseInputStream extends InputStream {
                     abortableHttpRequest.abort();
                 }
             }
-            inputStream.close();
+            in.close();
             alreadyReleased = true;
         }
     }
 
     public int read(byte[] b, int off, int len) throws IOException {
         try {
-            int read = inputStream.read(b, off, len);
+            int read = in.read(b, off, len);
             if (read == -1) {
                 underlyingStreamConsumed = true;
                 if (!alreadyReleased) {
@@ -91,7 +91,7 @@ public class HttpMethodReleaseInputStream extends InputStream {
 
     public int available() throws IOException {
         try {
-            return inputStream.available();
+            return in.available();
         } catch (IOException e) {
             releaseConnection();
             LOG.log(Level.FINE, "Released HttpMethod as its response data stream threw an exception", e);
@@ -104,7 +104,7 @@ public class HttpMethodReleaseInputStream extends InputStream {
             releaseConnection();
             LOG.log(Level.FINE, "Released HttpMethod as its response data stream is closed");
         }
-        inputStream.close();
+        in.close();
     }
 
     protected void finalize() throws Throwable {
