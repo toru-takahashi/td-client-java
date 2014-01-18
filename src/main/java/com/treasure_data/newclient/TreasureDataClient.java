@@ -20,15 +20,22 @@ import com.treasure_data.newclient.model.transform.JsonResponseParser;
 import com.treasure_data.newclient.model.GetServerStatusRequest;
 import com.treasure_data.newclient.model.transform.DefaultUnmarshaller;
 import com.treasure_data.newclient.model.transform.JsonCreateLogTableInitializer;
+import com.treasure_data.newclient.model.transform.JsonExceptionInitializer;
 import com.treasure_data.newclient.model.transform.JsonGetServerStatusIntializer;
 import com.treasure_data.newclient.model.transform.ResponseModelInitializer;
 
 public class TreasureDataClient extends AbstractTreasureDataClient {
 
-    private ErrorResponseHandler errorResponseHandler = new ErrorResponseHandler();
+    private ErrorResponseHandler errorResponseHandler;
 
     public TreasureDataClient(Configuration conf) throws TreasureDataClientException {
         super(conf);
+
+        ResponseModelInitializer<TreasureDataServiceException> modelInit =
+                new JsonExceptionInitializer();
+        errorResponseHandler = new ErrorResponseHandler(
+                new DefaultUnmarshaller<TreasureDataServiceException>(
+                new JsonResponseParser<TreasureDataServiceException>(), modelInit));
     }
 
     public ServerStatus getServerStatus()

@@ -47,7 +47,7 @@ public class TreasureDataHttpClient implements Closeable {
     public <M, REQ> M execute(
             Request<REQ> request,
             HttpResponseHandler<TreasureDataServiceResponse<M>> responseHandler,
-            HttpResponseHandler<TreasureDataServiceException> errorResponseHandler,
+            HttpResponseHandler<TreasureDataServiceResponse<TreasureDataServiceException>> errorResponseHandler,
             ExecutionContext context)
                     throws TreasureDataClientException, TreasureDataServiceException {
         // null check
@@ -67,7 +67,7 @@ public class TreasureDataHttpClient implements Closeable {
     private <M, REQ> M executeHelper(
             Request<REQ> request,
             HttpResponseHandler<TreasureDataServiceResponse<M>> responseHandler,
-            HttpResponseHandler<TreasureDataServiceException> errorResponseHandler,
+            HttpResponseHandler<TreasureDataServiceResponse<TreasureDataServiceException>> errorResponseHandler,
             ExecutionContext context)
                     throws TreasureDataClientException, TreasureDataServiceException {
         int retryCount = 0;
@@ -172,19 +172,19 @@ public class TreasureDataHttpClient implements Closeable {
         }
     }
 
-    private <T, REQ> T handleResponse(
+    private <M, REQ> M handleResponse(
             Request<REQ> request,
-            HttpResponseHandler<TreasureDataServiceResponse<T>> responseHandler,
+            HttpResponseHandler<TreasureDataServiceResponse<M>> responseHandler,
             HttpRequestBase httpRequest,
             org.apache.http.HttpResponse apacheHttpResponse,
             ExecutionContext context)
                     throws IOException, TreasureDataClientException {
-        HttpResponse httpResponse = createResponse(httpRequest, request, apacheHttpResponse);
+        HttpResponse httpResponse = createResponse(request, httpRequest, apacheHttpResponse);
         try {
             CountingInputStream countingInputStream =
                     new CountingInputStream(httpResponse.getContent());
             httpResponse.setContent(countingInputStream);
-            TreasureDataServiceResponse<T> response = responseHandler.handle(httpResponse);
+            TreasureDataServiceResponse<M> response = responseHandler.handle(httpResponse);
             return response.getResult();
         } catch (Exception e) {
             String errorMessage = "Unable to unmarshall response (" + e.getMessage() + ")";
@@ -192,39 +192,20 @@ public class TreasureDataHttpClient implements Closeable {
         }
     }
 
-    private <REQ> HttpResponse createResponse(HttpRequestBase method,
-            Request<REQ> request,
-            org.apache.http.HttpResponse apacheHttpResponse) throws IOException {
-        HttpResponse httpResponse = new HttpResponse(request, method);
-
-        if (apacheHttpResponse.getEntity() != null) {
-            httpResponse.setContent(apacheHttpResponse.getEntity().getContent());
-        }
-
-        httpResponse.setStatusCode(apacheHttpResponse.getStatusLine().getStatusCode());
-        httpResponse.setStatusText(apacheHttpResponse.getStatusLine().getReasonPhrase());
-        for (Header header : apacheHttpResponse.getAllHeaders()) {
-            httpResponse.addHeader(header.getName(), header.getValue());
-        }
-
-        return httpResponse;
-    }
-
     private <REQ> TreasureDataServiceException handleErrorResponse(
             Request<REQ> request,
-            HttpResponseHandler<TreasureDataServiceException> errorResponseHandler,
-            HttpRequestBase method,
-            org.apache.http.HttpResponse apacheHttpResponse) throws IOException, TreasureDataServiceException {
+            HttpResponseHandler<TreasureDataServiceResponse<TreasureDataServiceException>> errorResponseHandler,
+            HttpRequestBase httpRequest,
+            org.apache.http.HttpResponse apacheHttpResponse)
+                    throws IOException, TreasureDataServiceException {
         int status = apacheHttpResponse.getStatusLine().getStatusCode();
-        HttpResponse response = createResponse(method, request, apacheHttpResponse);
-        if (method instanceof HttpEntityEnclosingRequestBase) {
-            HttpEntityEnclosingRequestBase entityEnclosingRequest = (HttpEntityEnclosingRequestBase)method;
-            response.setContent(new HttpMethodReleaseInputStream(entityEnclosingRequest));
-        }
-
+        HttpResponse httpResponse = createResponse(request, httpRequest, apacheHttpResponse);
+        TreasureDataServiceResponse<TreasureDataServiceException> response = null;
         TreasureDataServiceException exception = null;
+
         try {
-            exception = errorResponseHandler.handle(response);
+            response = errorResponseHandler.handle(httpResponse);
+            exception = response.getResult();
             LOG.fine("Received error response: " + exception.toString());
         } catch (Exception e) {
             // If the errorResponseHandler doesn't work, then check for error
@@ -248,6 +229,25 @@ public class TreasureDataHttpClient implements Closeable {
         exception.setStatusCode(status);
         exception.fillInStackTrace();
         return exception;
+    }
+
+    private <REQ> HttpResponse createResponse(
+            Request<REQ> request,
+            HttpRequestBase method,
+            org.apache.http.HttpResponse apacheHttpResponse) throws IOException {
+        HttpResponse httpResponse = new HttpResponse(request, method);
+
+        if (apacheHttpResponse.getEntity() != null) {
+            httpResponse.setContent(apacheHttpResponse.getEntity().getContent());
+        }
+
+        httpResponse.setStatusCode(apacheHttpResponse.getStatusLine().getStatusCode());
+        httpResponse.setStatusText(apacheHttpResponse.getStatusLine().getReasonPhrase());
+        for (Header header : apacheHttpResponse.getAllHeaders()) {
+            httpResponse.addHeader(header.getName(), header.getValue());
+        }
+
+        return httpResponse;
     }
 
     public void close() {
