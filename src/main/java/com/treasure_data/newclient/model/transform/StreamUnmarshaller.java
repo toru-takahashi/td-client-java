@@ -5,10 +5,10 @@ import java.io.InputStream;
 
 import com.treasure_data.newclient.TreasureDataClientException;
 
-public class DefaultUnmarshaller<M> extends AbstractUnmarshaller<M, InputStream> {
+public class StreamUnmarshaller<M> extends AbstractUnmarshaller<M, InputStream> {
 
-    public DefaultUnmarshaller(ResponseParser<M> parser,
-            ResponseModelInitializer<M> init) {
+    public StreamUnmarshaller(ResponseParser<M> parser,
+            ResponseModelGen<M> init) {
         super(parser, init);
     }
 

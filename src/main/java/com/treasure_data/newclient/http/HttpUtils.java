@@ -1,34 +1,42 @@
 package com.treasure_data.newclient.http;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
+import java.net.URLEncoder;
 import java.util.Map.Entry;
-
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.message.BasicNameValuePair;
-
-import com.treasure_data.newclient.Request;
 
 public class HttpUtils {
     private static final String DEFAULT_ENCODING = "UTF-8";
+    private static final String PARAMETER_SEPARATOR = "&";
+    private static final String NAME_VALUE_SEPARATOR = "=";
 
     public static String encodeParameters(Request<?> request) {
-        List<NameValuePair> nameValuePairs = null;
-        if (request.getParameters().size() > 0) {
-            nameValuePairs = new ArrayList<NameValuePair>(request.getParameters().size());
-            for (Entry<String, String> entry : request.getParameters().entrySet()) {
-                nameValuePairs.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+        final StringBuilder result = new StringBuilder();
+
+        for (Entry<String, String> entry : request.getParameters().entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+
+            final String encodedName = encode(key);
+            final String encodedValue = value != null ? encode(value) : "";
+
+            if (result.length() > 0) {
+                result.append(PARAMETER_SEPARATOR);
             }
+            result.append(encodedName);
+            result.append(NAME_VALUE_SEPARATOR);
+            result.append(encodedValue);
         }
 
-        String encodedParams = null;
-        if (nameValuePairs != null) {
-            encodedParams = URLEncodedUtils.format(nameValuePairs, DEFAULT_ENCODING);
-        }
+        return result.toString();
+    }
 
-        return encodedParams;
+    private static String encode (final String content) {
+        try {
+            return URLEncoder.encode(content, DEFAULT_ENCODING);
+        } catch (UnsupportedEncodingException problem) {
+            throw new IllegalArgumentException(problem);
+        }
     }
 
     public static boolean isUsingNonDefaultPort(URI uri) {

@@ -2,85 +2,63 @@ package com.treasure_data.newclient.http;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.eclipse.jetty.client.ContentExchange;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.http.HttpMethods;
 
 import com.treasure_data.newclient.Configuration;
-import com.treasure_data.newclient.Request;
 import com.treasure_data.newclient.TreasureDataClientException;
 import com.treasure_data.newclient.TreasureDataServiceException;
-import com.treasure_data.newclient.TreasureDataServiceResponse;
-import com.treasure_data.newclient.util.CountingInputStream;
 
 public class TreasureDataHttpClient implements Closeable {
 
     private static final Logger LOG = Logger.getLogger(TreasureDataHttpClient.class.getName());
 
-    private static HttpRequestFactory httpRequestFactory = new HttpRequestFactory();
-    private static HttpClientFactory httpClientFactory = new HttpClientFactory();
-
-    static {
-        
-    }
-
-    private final HttpClient httpClient;
     private Configuration conf;
+    private HttpClient httpClient;
+
+    private HttpClientFactory httpClientFactory = new HttpClientFactory();
+    private HttpContentFactory httpContentFactory = new HttpContentFactory();
 
     public TreasureDataHttpClient(Configuration conf) throws TreasureDataClientException {
         this.conf = conf;
-        this.httpClient = httpClientFactory.createHttpClient(conf);
+        try {
+            httpClient = httpClientFactory.createHttpClient(conf);
+            httpClient.start();
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "cannot start http client", e);
+            throw new TreasureDataClientException(e);
+        }
     }
 
     public <M, REQ> M execute(
             Request<REQ> request,
-            HttpResponseHandler<TreasureDataServiceResponse<M>> responseHandler,
-            HttpResponseHandler<TreasureDataServiceResponse<TreasureDataServiceException>> errorResponseHandler,
+            ResponseHandler<M> responseHandler,
+            ResponseHandler<TreasureDataServiceException> errorResponseHandler,
             ExecutionContext context)
                     throws TreasureDataClientException, TreasureDataServiceException {
         // null check
-        if (request == null
-                || responseHandler == null
-                || errorResponseHandler == null
-                || context == null) {
+        if (request == null || responseHandler == null
+                || errorResponseHandler == null || context == null) {
             RuntimeException e = new NullPointerException(
                     "Internal Error: some of arguments are null.");
             LOG.log(Level.SEVERE, e.getMessage(), e);
             throw e;
         }
 
-        return executeHelper(request, responseHandler, errorResponseHandler, context);
-    }
-
-    private <M, REQ> M executeHelper(
-            Request<REQ> request,
-            HttpResponseHandler<TreasureDataServiceResponse<M>> responseHandler,
-            HttpResponseHandler<TreasureDataServiceResponse<TreasureDataServiceException>> errorResponseHandler,
-            ExecutionContext context)
-                    throws TreasureDataClientException, TreasureDataServiceException {
         int retryCount = 0;
-        URI redirectedURI = null;
-        HttpEntity entity = null;
         TreasureDataServiceException exception = null;
 
-        // Make a copy of the original request params and headers so that we can
-        // permute it in this loop and start over with the original every time.
+        // make a copy of the original request parameters
         Map<String, String> originalParameters = new HashMap<String, String>();
         originalParameters.putAll(request.getParameters());
 
+        // make a copy of the original request headers
         Map<String, String> originalHeaders = new HashMap<String, String>();
         originalHeaders.putAll(request.getHeaders());
 
@@ -90,8 +68,7 @@ public class TreasureDataHttpClient implements Closeable {
                 request.setHeaders(originalHeaders);
             }
 
-            HttpRequestBase httpRequest = null;
-            org.apache.http.HttpResponse httpResponse = null;
+            ContentExchange exchange = null;
 
             try {
                 // sign the rquest if a signer was provided
@@ -104,11 +81,7 @@ public class TreasureDataHttpClient implements Closeable {
                             request, retryCount));
                 }
 
-                httpRequest = httpRequestFactory.createHttpRequest(request, conf, entity, context);
-
-                if (redirectedURI != null) {
-                    httpRequest.setURI(redirectedURI);
-                }
+                exchange = httpContentFactory.createHttpContent(request, conf, context);
 
                 // pause exponentially
                 if (retryCount > 0) {
@@ -116,47 +89,50 @@ public class TreasureDataHttpClient implements Closeable {
                 }
                 
                 exception = null;
-                httpResponse = httpClient.execute(httpRequest);
-
-                if (isRequestSuccessful(httpResponse)) {
-                    return handleResponse(request, responseHandler,
-                            httpRequest, httpResponse, context);
-                } else {
-                    exception = handleErrorResponse(request, errorResponseHandler,
-                            httpRequest, httpResponse, context);
-
-                    if (!shouldRetry(httpRequest, exception, retryCount)) {
-                        throw exception;
-                    }
-
-                    resetRequestAfterError(request, exception);
+                httpClient.send(exchange);
+                try {
+                    exchange.waitForDone();
+                } catch (InterruptedException e) { // TODO FIXME
+                    throw new TreasureDataClientException("interrupted");
                 }
+
+//                if (isRequestSuccessful(exchange.getResponseStatus())) {
+//                    return handleResponse(request, responseHandler);
+//                } else {
+//                    exception = handleErrorResponse(request, errorResponseHandler);
+//
+//                    if (!shouldRetry(httpRequest, exception, retryCount)) {
+//                        throw exception;
+//                    }
+//
+//                    resetRequestAfterError(request, exception);
+//                }
             } catch (IOException e) {
                 LOG.log(Level.INFO, "Unable to execute HTTP request: " + e.getMessage(), e);
 
-                if (!shouldRetry(httpRequest, e, retryCount)) {
-                    TreasureDataClientException ex = new TreasureDataClientException(
-                            "Unable to execute HTTP request: " + e.getMessage(), e);
-                    LOG.log(Level.SEVERE, ex.getMessage(), ex);
-                    throw ex;
-                }
+//                if (!shouldRetry(httpRequest, e, retryCount)) {
+//                    TreasureDataClientException ex = new TreasureDataClientException(
+//                            "Unable to execute HTTP request: " + e.getMessage(), e);
+//                    LOG.log(Level.SEVERE, ex.getMessage(), ex);
+//                    throw ex;
+//                }
 
                 resetRequestAfterError(request, e);
             } finally {
                 retryCount++;
-
-                try {
-                    httpResponse.getEntity().getContent().close();
-                } catch (Throwable t) {
-                    LOG.log(Level.FINE, "during close method", t);
-                }
+//
+//                try {
+//                    exchange.get
+//                    httpResponse.getEntity().getContent().close();
+//                } catch (Throwable t) {
+//                    LOG.log(Level.FINE, "during close method", t);
+//                }
             }
         }
     }
 
-    private boolean isRequestSuccessful(org.apache.http.HttpResponse response) {
-        int status = response.getStatusLine().getStatusCode();
-        return status / 100 == HttpStatus.SC_OK / 100;
+    private boolean isRequestSuccessful(int status) {
+        return status / 100 == 2; // 200 / 100
     }
 
     private void pauseExponentially(final int retryCount) throws TreasureDataClientException {
@@ -173,101 +149,99 @@ public class TreasureDataHttpClient implements Closeable {
         }
     }
 
-    private <M, REQ> M handleResponse(
-            Request<REQ> request,
-            HttpResponseHandler<TreasureDataServiceResponse<M>> responseHandler,
-            HttpRequestBase httpRequest,
-            org.apache.http.HttpResponse apacheHttpResponse,
-            ExecutionContext context)
-                    throws IOException, TreasureDataClientException {
-        HttpResponse httpResponse = createResponse(request, httpRequest, apacheHttpResponse);
-        try {
-            CountingInputStream countingInputStream =
-                    new CountingInputStream(httpResponse.getContent());
-            httpResponse.setContent(countingInputStream);
-            TreasureDataServiceResponse<M> response = responseHandler.handle(httpResponse);
-            return response.getResult();
-        } catch (Exception e) {
-            String errorMessage = "Unable to unmarshall response (" + e.getMessage() + ")";
-            throw new TreasureDataClientException(errorMessage, e);
-        }
-    }
+//    private <M, REQ> M handleResponse(
+//            Request<REQ> request,
+//            HttpResponseHandler<TreasureDataServiceResponse<M>> responseHandler,
+//            HttpRequestBase httpRequest,
+//            org.apache.http.HttpResponse apacheHttpResponse,
+//            ExecutionContext context)
+//                    throws IOException, TreasureDataClientException {
+//        HttpResponse httpResponse = createResponse(request, httpRequest, apacheHttpResponse);
+//        try {
+//            CountingInputStream countingInputStream =
+//                    new CountingInputStream(httpResponse.getContent());
+//            httpResponse.setContent(countingInputStream);
+//            TreasureDataServiceResponse<M> response = responseHandler.handle(httpResponse);
+//            return response.getResult();
+//        } catch (Exception e) {
+//            String errorMessage = "Unable to unmarshall response (" + e.getMessage() + ")";
+//            throw new TreasureDataClientException(errorMessage, e);
+//        }
+//    }
+//
+//    private <REQ> TreasureDataServiceException handleErrorResponse(
+//            Request<REQ> request,
+//            HttpResponseHandler<TreasureDataServiceResponse<TreasureDataServiceException>> errorResponseHandler,
+//            HttpRequestBase httpRequest,
+//            org.apache.http.HttpResponse apacheHttpResponse,
+//            ExecutionContext context)
+//                    throws IOException, TreasureDataServiceException {
+//        HttpResponse httpResponse = createResponse(request, httpRequest, apacheHttpResponse);
+//        StatusLine stat = apacheHttpResponse.getStatusLine();
+//        int status = stat.getStatusCode();
+//
+//        TreasureDataServiceException exception = null;
+//        try {
+//            exception = errorResponseHandler.handle(httpResponse).getResult();
+//            exception.setStatusCode(status);
+//            exception.setErrorCode(stat.getReasonPhrase());
+//            LOG.fine("Received error response: " + exception.toString());
+//        } catch (Exception e) {
+//            // If the errorResponseHandler doesn't work, then check for error
+//            // responses that don't have any content
+//            if (status == 413) {
+//                exception = new TreasureDataServiceException("Request entity too large");
+//                exception.setStatusCode(413);
+//                exception.setErrorCode("Request entity too large");
+//            } else if (status == 503 && "Service Unavailable".equalsIgnoreCase(apacheHttpResponse.getStatusLine().getReasonPhrase())) {
+//                exception = new TreasureDataServiceException("Service unavailable");
+//                exception.setStatusCode(503);
+//                exception.setErrorCode("Service unavailable");
+//            } else {
+//                String errorMessage = "Unable to unmarshall error response (" + e.getMessage() + ")";
+//                throw new TreasureDataServiceException(errorMessage, e);
+//            }
+//        }
+//
+//        exception.setStatusCode(status);
+//        exception.fillInStackTrace();
+//        return exception;
+//    }
+//
+//    private <REQ> HttpResponse createResponse(
+//            Request<REQ> request,
+//            HttpRequestBase method,
+//            org.apache.http.HttpResponse apacheHttpResponse) throws IOException {
+//        HttpResponse httpResponse = new HttpResponse(request, method);
+//
+//        if (apacheHttpResponse.getEntity() != null) {
+//            httpResponse.setContent(apacheHttpResponse.getEntity().getContent());
+//        }
+//
+//        httpResponse.setStatusCode(apacheHttpResponse.getStatusLine().getStatusCode());
+//        httpResponse.setStatusText(apacheHttpResponse.getStatusLine().getReasonPhrase());
+//        for (Header header : apacheHttpResponse.getAllHeaders()) {
+//            httpResponse.addHeader(header.getName(), header.getValue());
+//        }
+//
+//        return httpResponse;
+//    }
 
-    private <REQ> TreasureDataServiceException handleErrorResponse(
-            Request<REQ> request,
-            HttpResponseHandler<TreasureDataServiceResponse<TreasureDataServiceException>> errorResponseHandler,
-            HttpRequestBase httpRequest,
-            org.apache.http.HttpResponse apacheHttpResponse,
-            ExecutionContext context)
-                    throws IOException, TreasureDataServiceException {
-        HttpResponse httpResponse = createResponse(request, httpRequest, apacheHttpResponse);
-        StatusLine stat = apacheHttpResponse.getStatusLine();
-        int status = stat.getStatusCode();
-
-        TreasureDataServiceException exception = null;
-        try {
-            exception = errorResponseHandler.handle(httpResponse).getResult();
-            exception.setStatusCode(status);
-            exception.setErrorCode(stat.getReasonPhrase());
-            LOG.fine("Received error response: " + exception.toString());
-        } catch (Exception e) {
-            // If the errorResponseHandler doesn't work, then check for error
-            // responses that don't have any content
-            if (status == 413) {
-                exception = new TreasureDataServiceException("Request entity too large");
-                exception.setStatusCode(413);
-                exception.setErrorCode("Request entity too large");
-            } else if (status == 503 && "Service Unavailable".equalsIgnoreCase(apacheHttpResponse.getStatusLine().getReasonPhrase())) {
-                exception = new TreasureDataServiceException("Service unavailable");
-                exception.setStatusCode(503);
-                exception.setErrorCode("Service unavailable");
-            } else {
-                String errorMessage = "Unable to unmarshall error response (" + e.getMessage() + ")";
-                throw new TreasureDataServiceException(errorMessage, e);
+    public void close() throws IOException {
+        if (httpClient != null) {
+            try {
+                httpClient.stop();
+            } catch (Exception e) {
+                LOG.log(Level.SEVERE, "failed to stop http client", e);
+                throw new IOException(e);
             }
         }
-
-        exception.setStatusCode(status);
-        exception.fillInStackTrace();
-        return exception;
     }
 
-    private <REQ> HttpResponse createResponse(
-            Request<REQ> request,
-            HttpRequestBase method,
-            org.apache.http.HttpResponse apacheHttpResponse) throws IOException {
-        HttpResponse httpResponse = new HttpResponse(request, method);
-
-        if (apacheHttpResponse.getEntity() != null) {
-            httpResponse.setContent(apacheHttpResponse.getEntity().getContent());
-        }
-
-        httpResponse.setStatusCode(apacheHttpResponse.getStatusLine().getStatusCode());
-        httpResponse.setStatusText(apacheHttpResponse.getStatusLine().getReasonPhrase());
-        for (Header header : apacheHttpResponse.getAllHeaders()) {
-            httpResponse.addHeader(header.getName(), header.getValue());
-        }
-
-        return httpResponse;
-    }
-
-    public void close() {
-        if (httpClient != null) {
-            httpClient.getConnectionManager().shutdown();
-        }
-    }
-
-    private boolean shouldRetry(HttpRequestBase method, Exception exception, int retries) {
+    private boolean shouldRetry(HttpMethods method, ContentExchange exchange,
+            Exception exception, int retries) {
         if (retries >= 10) {
             return false;
-        }
-
-        if (method instanceof HttpEntityEnclosingRequest) {
-            HttpEntity entity = ((HttpEntityEnclosingRequest)method).getEntity();
-            if (entity != null && !entity.isRepeatable()) {
-                LOG.fine("Entity not repeatable");
-                return false;
-            }
         }
 
         if (exception instanceof IOException) {
@@ -287,8 +261,7 @@ public class TreasureDataHttpClient implements Closeable {
              * retry limit we handle the error response as a non-retryable
              * error and go ahead and throw it back to the user as an exception.
              */
-            if (ase.getStatusCode() == HttpStatus.SC_INTERNAL_SERVER_ERROR
-                || ase.getStatusCode() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+            if (exchange.getStatus() == 500 || exchange.getStatus() == 503) {
                 return true;
             }
         }

@@ -1,8 +1,8 @@
 package com.treasure_data.newclient;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.logging.Logger;
 
 import com.treasure_data.client.Constants;
@@ -24,7 +24,6 @@ public abstract class AbstractTreasureDataClient implements Closeable {
             throws TreasureDataClientException {
         this.conf = conf;
         this.client = new TreasureDataHttpClient(conf);
-        setEndpoint("api.treasure-data.com"); // TODO FIXME
     }
 
     protected ExecutionContext createExecutionContext() {
@@ -43,24 +42,7 @@ public abstract class AbstractTreasureDataClient implements Closeable {
         return credentials;
     }
 
-    public void setEndpoint(String endpoint) {
-        /*
-         * If the endpoint doesn't explicitly specify a protocol to use, then
-         * we'll defer to the default protocol specified in the client
-         * configuration.
-         */
-        if (!endpoint.contains("://")) {
-            endpoint = conf.getProtocol().toString() + "://" + endpoint;
-        }
-
-        try {
-            this.endpoint = new URI(endpoint);
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException(e);
-        }
-    }
-
-    public void close() {
+    public void close() throws IOException {
         if (client != null) {
             client.close();
         }

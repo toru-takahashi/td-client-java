@@ -4,8 +4,6 @@ import java.util.Properties;
 
 public class Configuration implements Constants {
 
-    private Protocol protocol = Protocol.HTTP;
-
     private Properties props;
 
     public Configuration(Properties props) {
@@ -16,7 +14,4 @@ public class Configuration implements Constants {
         return props;
     }
 
-    public Object getProtocol() {
-        return protocol;
-    }
 }

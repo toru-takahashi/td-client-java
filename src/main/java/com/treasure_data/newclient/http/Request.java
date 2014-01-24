@@ -1,12 +1,16 @@
-package com.treasure_data.newclient;
+package com.treasure_data.newclient.http;
 
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Map;
 
-import com.treasure_data.newclient.http.HttpMethodName;
+import com.treasure_data.newclient.TreasureDataServiceRequest;
 
 public interface Request<T> {
+
+    public static enum MethodName {
+        GET, PUT, POST;
+    }
 
     TreasureDataServiceRequest getOriginalRequest();
 
@@ -18,15 +22,14 @@ public interface Request<T> {
     String getResourcePath();
 
     void addParameter(String name, String value);
-    Request<T> withParameter(String name, String value);
     Map<String, String> getParameters();
     void setParameters(Map<String, String> parameters);
 
     void setEndpoint(URI endpoint);
     URI getEndpoint();
 
-    void setHttpMethod(HttpMethodName httpMethod);
-    HttpMethodName getHttpMethod();
+    void setMethodName(MethodName methodName);
+    MethodName getMethodName();
 
     InputStream getContent();
     void setContent(InputStream content);

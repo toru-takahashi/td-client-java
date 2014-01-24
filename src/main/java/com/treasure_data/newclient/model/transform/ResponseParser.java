@@ -5,6 +5,6 @@ import java.io.InputStream;
 
 public interface ResponseParser<M> {
 
-    void parse(ResponseModelInitializer<M> init, InputStream in) throws IOException;
+    void parse(ResponseModelGen<M> init, InputStream in) throws IOException;
 
 }

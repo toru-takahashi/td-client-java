@@ -5,8 +5,8 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.logging.Logger;
 
-import com.treasure_data.newclient.Request;
 import com.treasure_data.newclient.TreasureDataClientException;
+import com.treasure_data.newclient.http.Request;
 import com.treasure_data.newclient.model.GetServerStatusRequest;
 
 public class DefaultSigner implements Signer {

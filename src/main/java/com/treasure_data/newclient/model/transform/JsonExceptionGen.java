@@ -5,7 +5,7 @@ import java.util.Map;
 import com.treasure_data.newclient.TreasureDataClientException;
 import com.treasure_data.newclient.TreasureDataServiceException;
 
-public class JsonExceptionInitializer extends
+public class JsonExceptionGen extends
         AbstractJsonResponseModelInitializer<TreasureDataServiceException> {
 
     private static final String MESSAGE = "message";

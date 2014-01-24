@@ -6,10 +6,11 @@ import java.util.Map.Entry;
 import com.treasure_data.newclient.auth.DefaultSigner;
 import com.treasure_data.newclient.auth.Signer;
 import com.treasure_data.newclient.auth.TreasureDataCredentials;
+import com.treasure_data.newclient.http.DefaultRequest;
 import com.treasure_data.newclient.http.ExecutionContext;
-import com.treasure_data.newclient.http.HttpMethodName;
-import com.treasure_data.newclient.http.HttpResponseHandler;
-import com.treasure_data.newclient.http.DefaultHttpResponseHandler;
+import com.treasure_data.newclient.http.ResponseHandler;
+import com.treasure_data.newclient.http.DefaultResponseHandler;
+import com.treasure_data.newclient.http.Request;
 import com.treasure_data.newclient.model.CreateLogTableRequest;
 import com.treasure_data.newclient.model.ListTablesRequest;
 import com.treasure_data.newclient.model.LogTable;
@@ -18,30 +19,23 @@ import com.treasure_data.newclient.model.Table;
 import com.treasure_data.newclient.model.transform.JsonListTablesIntializer;
 import com.treasure_data.newclient.model.transform.JsonResponseParser;
 import com.treasure_data.newclient.model.GetServerStatusRequest;
-import com.treasure_data.newclient.model.transform.DefaultUnmarshaller;
+import com.treasure_data.newclient.model.transform.StreamUnmarshaller;
 import com.treasure_data.newclient.model.transform.JsonCreateLogTableInitializer;
-import com.treasure_data.newclient.model.transform.JsonExceptionInitializer;
+import com.treasure_data.newclient.model.transform.JsonExceptionGen;
 import com.treasure_data.newclient.model.transform.JsonGetServerStatusIntializer;
-import com.treasure_data.newclient.model.transform.ResponseModelInitializer;
+import com.treasure_data.newclient.model.transform.ResponseModelGen;
+import com.treasure_data.newclient.model.transform.ResponseParser;
 
 public class TreasureDataClient extends AbstractTreasureDataClient {
 
-    private ErrorResponseHandler errorResponseHandler;
-
     public TreasureDataClient(Configuration conf) throws TreasureDataClientException {
         super(conf);
-
-        ResponseModelInitializer<TreasureDataServiceException> modelInit =
-                new JsonExceptionInitializer();
-        errorResponseHandler = new ErrorResponseHandler(
-                new DefaultUnmarshaller<TreasureDataServiceException>(
-                new JsonResponseParser<TreasureDataServiceException>(), modelInit));
     }
 
     public ServerStatus getServerStatus()
         throws TreasureDataClientException, TreasureDataServiceException {
         GetServerStatusRequest request = new GetServerStatusRequest();
-        return invoke(request, new JsonGetServerStatusIntializer(), HttpMethodName.GET);
+        return invoke(request, new JsonGetServerStatusIntializer(), Request.MethodName.GET);
     }
 
     public List<Table> listTables(String databaseName)
@@ -53,7 +47,7 @@ public class TreasureDataClient extends AbstractTreasureDataClient {
 
     public List<Table> listTables(ListTablesRequest request)
             throws TreasureDataClientException, TreasureDataServiceException {
-        return invoke(request, new JsonListTablesIntializer(), HttpMethodName.GET);
+        return invoke(request, new JsonListTablesIntializer(), Request.MethodName.GET);
     }
 
     public LogTable createLogTable(String databaseName, String tableName)
@@ -66,7 +60,7 @@ public class TreasureDataClient extends AbstractTreasureDataClient {
 
     public LogTable createLogTable(CreateLogTableRequest request)
             throws TreasureDataClientException, TreasureDataServiceException {
-        return invoke(request, new JsonCreateLogTableInitializer(), HttpMethodName.POST);
+        return invoke(request, new JsonCreateLogTableInitializer(), Request.MethodName.POST);
     }
 
 //    public ItemTable createItemTable(CreateItemTableRequest request)
@@ -74,9 +68,11 @@ public class TreasureDataClient extends AbstractTreasureDataClient {
 //        return invoke(request, new JsonCreateItemTableInitializer(), HttpMethodName.POST);
 //    }
 
-    protected <M, REQ extends TreasureDataServiceRequest> M invoke(REQ originalRequest,
-            ResponseModelInitializer<M> modelInit, HttpMethodName m)
-            throws TreasureDataClientException, TreasureDataServiceException {
+    protected <M, REQ extends TreasureDataServiceRequest> M invoke(
+            REQ originalRequest,
+            ResponseModelGen<M> modelGen,
+            Request.MethodName m)
+                    throws TreasureDataClientException, TreasureDataServiceException {
         if (originalRequest == null) {
             throw new NullPointerException("origina request is null.");
         }
@@ -84,16 +80,15 @@ public class TreasureDataClient extends AbstractTreasureDataClient {
         originalRequest.validate();
 
         Request<REQ> request = createRequest(originalRequest, m);
-        DefaultUnmarshaller<M> unmarshaller = new DefaultUnmarshaller<M>(
-                new JsonResponseParser<M>(), modelInit);
-        HttpResponseHandler<TreasureDataServiceResponse<M>> responseHandler =
-                new DefaultHttpResponseHandler<M>(unmarshaller);
-        return invoke(request, responseHandler);
+        ResponseHandler<M> responseHandler = createResponseHandler(createUnmarshaller(new JsonResponseParser<M>(), modelGen));
+        ResponseHandler<TreasureDataServiceException> errorResponseHandler = createErrorResponseHandler();
+        return invoke(request, responseHandler, errorResponseHandler);
     }
 
     protected <M, REQ extends TreasureDataServiceRequest> M invoke(
             Request<REQ> request,
-            HttpResponseHandler<TreasureDataServiceResponse<M>> responseHandler)
+            ResponseHandler<M> responseHandler,
+            ResponseHandler<TreasureDataServiceException> errorResponseHandler)
                     throws TreasureDataServiceException, TreasureDataClientException {
         for (Entry<String, String> entry :
                 request.getOriginalRequest().copyPrivateRequestParameters().entrySet()) {
@@ -125,12 +120,27 @@ public class TreasureDataClient extends AbstractTreasureDataClient {
     }
 
     protected <REQ extends TreasureDataServiceRequest> Request<REQ> createRequest(
-            REQ originalRequest, HttpMethodName m) {
+            REQ originalRequest, Request.MethodName m) {
         Request<REQ> request = new DefaultRequest<REQ>(originalRequest);
         request.setResourcePath(originalRequest.getResourcePath());
-        request.setHttpMethod(m);
+        request.setMethodName(m);
         request.setEndpoint(endpoint);
         return request;
+    }
+
+    protected <M> StreamUnmarshaller<M> createUnmarshaller(ResponseParser<M> parser, ResponseModelGen<M> modelGen) {
+        return new StreamUnmarshaller<M>(parser, modelGen);
+    }
+
+    protected <M> ResponseHandler<M> createResponseHandler(StreamUnmarshaller<M> unmarshaller) {
+        return new DefaultResponseHandler<M>(unmarshaller);
+    }
+
+    protected ResponseHandler<TreasureDataServiceException> createErrorResponseHandler() {
+        return new DefaultResponseHandler<TreasureDataServiceException>(
+                new StreamUnmarshaller<TreasureDataServiceException>(
+                        new JsonResponseParser<TreasureDataServiceException>(),
+                        new JsonExceptionGen()));
     }
 
     protected <REQ> Signer createSigner(Request<REQ> request) {

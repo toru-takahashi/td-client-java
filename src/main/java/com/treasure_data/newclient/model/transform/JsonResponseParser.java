@@ -20,7 +20,7 @@ public class JsonResponseParser<M> extends AbstractResponseParser<M> {
     }
 
     @Override
-    public void parse(ResponseModelInitializer<M> init, InputStream in)
+    public void parse(ResponseModelGen<M> init, InputStream in)
             throws IOException {
         StringBuilder sbuf = new StringBuilder();
         BufferedReader reader = null;

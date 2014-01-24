@@ -1,25 +1,25 @@
-package com.treasure_data.newclient;
+package com.treasure_data.newclient.http;
 
 import java.io.InputStream;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.treasure_data.newclient.http.HttpMethodName;
+import com.treasure_data.newclient.TreasureDataServiceRequest;
 
-public class DefaultRequest<T> implements Request<T> {
+public class DefaultRequest<T extends TreasureDataServiceRequest> implements Request<T> {
 
     private String resourcePath;
     private Map<String, String> parameters = new HashMap<String, String>();
     private Map<String, String> headers = new HashMap<String, String>();
     private URI endpoint;
 
-    private final TreasureDataServiceRequest originalRequest;
+    private final T originalRequest;
 
-    private HttpMethodName httpMethod = HttpMethodName.POST;
+    private MethodName methodName;
     private InputStream content;
 
-    public DefaultRequest(TreasureDataServiceRequest originalRequest) {
+    public DefaultRequest(T originalRequest) {
         this.originalRequest = originalRequest;
     }
 
@@ -59,12 +59,6 @@ public class DefaultRequest<T> implements Request<T> {
     }
 
     @Override
-    public Request<T> withParameter(String name, String value) {
-        addParameter(name, value);
-        return this;
-    }
-
-    @Override
     public Map<String, String> getParameters() {
         return parameters;
     }
@@ -86,13 +80,13 @@ public class DefaultRequest<T> implements Request<T> {
     }
 
     @Override
-    public void setHttpMethod(HttpMethodName httpMethod) {
-        this.httpMethod = httpMethod;
+    public void setMethodName(MethodName methodName) {
+        this.methodName = methodName;
     }
 
     @Override
-    public HttpMethodName getHttpMethod() {
-        return httpMethod;
+    public MethodName getMethodName() {
+        return methodName;
     }
 
     @Override
@@ -109,7 +103,7 @@ public class DefaultRequest<T> implements Request<T> {
     public String toString() {
         StringBuilder sbuf = new StringBuilder();
 
-        sbuf.append(getHttpMethod().toString() + " ");
+        sbuf.append(getMethodName().toString() + " ");
         sbuf.append(getEndpoint().toString() + " ");
 
         sbuf.append("/" + (getResourcePath() != null ? getResourcePath() : "")

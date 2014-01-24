@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import com.treasure_data.newclient.TreasureDataClientException;
 
-public interface HttpResponseHandler<T> {
+public interface ResponseHandler<M> {
 
-    T handle(HttpResponse response) throws IOException, TreasureDataClientException;
+    M handle(Response response) throws IOException, TreasureDataClientException;
 }
