@@ -1,12 +1,12 @@
-package com.treasure_data.newclient.http;
+package com.treasure_data.newclient;
 
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Map;
 
-import com.treasure_data.newclient.TreasureDataServiceRequest;
+import com.treasure_data.newclient.model.TreasureDataServiceRequest;
 
-public interface Request<T> {
+public interface Request<T extends TreasureDataServiceRequest> {
 
     public static enum MethodName {
         GET, PUT, POST;

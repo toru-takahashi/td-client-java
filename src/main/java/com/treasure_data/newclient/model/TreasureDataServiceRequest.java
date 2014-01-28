@@ -1,7 +1,8 @@
-package com.treasure_data.newclient;
+package com.treasure_data.newclient.model;
 
 import java.util.Map;
 
+import com.treasure_data.newclient.TreasureDataClientException;
 import com.treasure_data.newclient.auth.TreasureDataCredentials;
 
 public interface TreasureDataServiceRequest {

@@ -1,11 +1,11 @@
-package com.treasure_data.newclient.http;
+package com.treasure_data.newclient;
 
 import java.io.InputStream;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.treasure_data.newclient.TreasureDataServiceRequest;
+import com.treasure_data.newclient.model.TreasureDataServiceRequest;
 
 public class DefaultRequest<T extends TreasureDataServiceRequest> implements Request<T> {
 

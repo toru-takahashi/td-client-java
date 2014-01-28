@@ -9,11 +9,14 @@ import java.util.logging.Logger;
 
 import org.eclipse.jetty.client.ContentExchange;
 import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.HttpExchange;
 import org.eclipse.jetty.http.HttpMethods;
 
 import com.treasure_data.newclient.Configuration;
+import com.treasure_data.newclient.Request;
 import com.treasure_data.newclient.TreasureDataClientException;
 import com.treasure_data.newclient.TreasureDataServiceException;
+import com.treasure_data.newclient.model.TreasureDataServiceRequest;
 
 public class TreasureDataHttpClient implements Closeable {
 
@@ -36,7 +39,7 @@ public class TreasureDataHttpClient implements Closeable {
         }
     }
 
-    public <M, REQ> M execute(
+    public <M, REQ extends TreasureDataServiceRequest> M execute(
             Request<REQ> request,
             ResponseHandler<M> responseHandler,
             ResponseHandler<TreasureDataServiceException> errorResponseHandler,
@@ -91,14 +94,15 @@ public class TreasureDataHttpClient implements Closeable {
                 exception = null;
                 httpClient.send(exchange);
                 try {
-                    exchange.waitForDone();
+                    int code = exchange.waitForDone();
+                    System.out.println("code: " + code);
                 } catch (InterruptedException e) { // TODO FIXME
                     throw new TreasureDataClientException("interrupted");
                 }
 
-//                if (isRequestSuccessful(exchange.getResponseStatus())) {
-//                    return handleResponse(request, responseHandler);
-//                } else {
+                if (isRequestSuccessful(exchange.getResponseStatus())) {
+                    return handleResponse(request, responseHandler, exchange);
+                } else {
 //                    exception = handleErrorResponse(request, errorResponseHandler);
 //
 //                    if (!shouldRetry(httpRequest, exception, retryCount)) {
@@ -106,7 +110,7 @@ public class TreasureDataHttpClient implements Closeable {
 //                    }
 //
 //                    resetRequestAfterError(request, exception);
-//                }
+                }
             } catch (IOException e) {
                 LOG.log(Level.INFO, "Unable to execute HTTP request: " + e.getMessage(), e);
 
@@ -149,26 +153,26 @@ public class TreasureDataHttpClient implements Closeable {
         }
     }
 
-//    private <M, REQ> M handleResponse(
-//            Request<REQ> request,
-//            HttpResponseHandler<TreasureDataServiceResponse<M>> responseHandler,
-//            HttpRequestBase httpRequest,
-//            org.apache.http.HttpResponse apacheHttpResponse,
-//            ExecutionContext context)
-//                    throws IOException, TreasureDataClientException {
-//        HttpResponse httpResponse = createResponse(request, httpRequest, apacheHttpResponse);
-//        try {
+    private <M, REQ extends TreasureDataServiceRequest> M handleResponse(
+            Request<REQ> request,
+            ResponseHandler<M> responseHandler,
+            ContentExchange exchange)
+                    throws IOException, TreasureDataClientException {
+        try {
+            //int code = HttpExchange.STATUS_COMPLETED;
+            return null;
+//            exchange.get
 //            CountingInputStream countingInputStream =
 //                    new CountingInputStream(httpResponse.getContent());
 //            httpResponse.setContent(countingInputStream);
 //            TreasureDataServiceResponse<M> response = responseHandler.handle(httpResponse);
 //            return response.getResult();
-//        } catch (Exception e) {
-//            String errorMessage = "Unable to unmarshall response (" + e.getMessage() + ")";
-//            throw new TreasureDataClientException(errorMessage, e);
-//        }
-//    }
-//
+        } catch (Exception e) {
+            String errorMessage = "Unable to unmarshall response (" + e.getMessage() + ")";
+            throw new TreasureDataClientException(errorMessage, e);
+        }
+    }
+
 //    private <REQ> TreasureDataServiceException handleErrorResponse(
 //            Request<REQ> request,
 //            HttpResponseHandler<TreasureDataServiceResponse<TreasureDataServiceException>> errorResponseHandler,

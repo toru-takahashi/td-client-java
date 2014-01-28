@@ -1,4 +1,4 @@
-package com.treasure_data.newclient;
+package com.treasure_data.newclient.model;
 
 public class TreasureDataServiceResponse<T> {
 

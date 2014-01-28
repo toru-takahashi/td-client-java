@@ -6,16 +6,15 @@ import java.util.Map.Entry;
 import com.treasure_data.newclient.auth.DefaultSigner;
 import com.treasure_data.newclient.auth.Signer;
 import com.treasure_data.newclient.auth.TreasureDataCredentials;
-import com.treasure_data.newclient.http.DefaultRequest;
 import com.treasure_data.newclient.http.ExecutionContext;
 import com.treasure_data.newclient.http.ResponseHandler;
 import com.treasure_data.newclient.http.DefaultResponseHandler;
-import com.treasure_data.newclient.http.Request;
 import com.treasure_data.newclient.model.CreateLogTableRequest;
 import com.treasure_data.newclient.model.ListTablesRequest;
 import com.treasure_data.newclient.model.LogTable;
 import com.treasure_data.newclient.model.ServerStatus;
 import com.treasure_data.newclient.model.Table;
+import com.treasure_data.newclient.model.TreasureDataServiceRequest;
 import com.treasure_data.newclient.model.transform.JsonListTablesIntializer;
 import com.treasure_data.newclient.model.transform.JsonResponseParser;
 import com.treasure_data.newclient.model.GetServerStatusRequest;
@@ -124,7 +123,7 @@ public class TreasureDataClient extends AbstractTreasureDataClient {
         Request<REQ> request = new DefaultRequest<REQ>(originalRequest);
         request.setResourcePath(originalRequest.getResourcePath());
         request.setMethodName(m);
-        request.setEndpoint(endpoint);
+        request.setEndpoint(conf.getEndpoint());
         return request;
     }
 
@@ -143,7 +142,7 @@ public class TreasureDataClient extends AbstractTreasureDataClient {
                         new JsonExceptionGen()));
     }
 
-    protected <REQ> Signer createSigner(Request<REQ> request) {
+    protected <REQ extends TreasureDataServiceRequest> Signer createSigner(Request<REQ> request) {
         return new DefaultSigner();
     }
 }

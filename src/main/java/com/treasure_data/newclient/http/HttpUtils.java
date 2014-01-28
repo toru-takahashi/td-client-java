@@ -5,6 +5,8 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.util.Map.Entry;
 
+import com.treasure_data.newclient.Request;
+
 public class HttpUtils {
     private static final String DEFAULT_ENCODING = "UTF-8";
     private static final String PARAMETER_SEPARATOR = "&";

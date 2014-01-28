@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.treasure_data.newclient.auth.TreasureDataCredentials;
+import com.treasure_data.newclient.model.TreasureDataServiceRequest;
 
 public abstract class AbstractTreasureDataServiceRequest
         implements TreasureDataServiceRequest {

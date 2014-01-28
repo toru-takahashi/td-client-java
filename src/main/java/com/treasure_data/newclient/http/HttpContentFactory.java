@@ -9,6 +9,7 @@ import org.eclipse.jetty.http.HttpMethods;
 import org.eclipse.jetty.io.ByteArrayBuffer;
 
 import com.treasure_data.newclient.Configuration;
+import com.treasure_data.newclient.Request;
 import com.treasure_data.newclient.TreasureDataClientException;
 
 public class HttpContentFactory {

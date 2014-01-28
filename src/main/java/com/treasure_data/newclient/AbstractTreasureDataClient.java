@@ -15,7 +15,6 @@ public abstract class AbstractTreasureDataClient implements Closeable {
 
     private static final Logger LOG = Logger.getLogger(AbstractTreasureDataClient.class.getName());
 
-    protected URI endpoint;
     protected TreasureDataCredentials credentials;
     protected Configuration conf;
     protected TreasureDataHttpClient client;
