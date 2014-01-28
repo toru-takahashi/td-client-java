@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 import org.eclipse.jetty.client.ContentExchange;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.http.HttpMethods;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 import com.treasure_data.newclient.Configuration;
 import com.treasure_data.newclient.Request;
@@ -20,10 +19,12 @@ public class TreasureDataHttpClient implements Closeable {
 
     private static final Logger LOG = Logger.getLogger(TreasureDataHttpClient.class.getName());
 
-    private Configuration conf;
-    private HttpClient httpClient;
     private HttpClientFactory httpClientFactory = new HttpClientFactory();
     private HttpContentFactory httpContentFactory = new HttpContentFactory();
+
+
+    private Configuration conf;
+    private HttpClient httpClient;
 
     public TreasureDataHttpClient(Configuration conf) throws TreasureDataClientException {
         this.conf = conf;
@@ -177,25 +178,6 @@ public class TreasureDataHttpClient implements Closeable {
 //        exception.fillInStackTrace();
         return exception;
     }
-
-//    private <REQ> HttpResponse createResponse(
-//            Request<REQ> request,
-//            HttpRequestBase method,
-//            org.apache.http.HttpResponse apacheHttpResponse) throws IOException {
-//        HttpResponse httpResponse = new HttpResponse(request, method);
-//
-//        if (apacheHttpResponse.getEntity() != null) {
-//            httpResponse.setContent(apacheHttpResponse.getEntity().getContent());
-//        }
-//
-//        httpResponse.setStatusCode(apacheHttpResponse.getStatusLine().getStatusCode());
-//        httpResponse.setStatusText(apacheHttpResponse.getStatusLine().getReasonPhrase());
-//        for (Header header : apacheHttpResponse.getAllHeaders()) {
-//            httpResponse.addHeader(header.getName(), header.getValue());
-//        }
-//
-//        return httpResponse;
-//    }
 
     public void close() throws IOException {
         if (httpClient != null) {

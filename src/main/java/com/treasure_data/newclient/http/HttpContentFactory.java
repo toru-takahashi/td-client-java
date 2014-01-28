@@ -91,9 +91,9 @@ public class HttpContentFactory {
         if (request.getMethodName().equals(Request.MethodName.GET)) {
             exchange.setMethod(HttpMethods.GET);
         } else if (request.getMethodName().equals(Request.MethodName.PUT)) {
-            // TODO FIXME
+            exchange.setMethod(HttpMethods.PUT);
         } else if (request.getMethodName().equals(Request.MethodName.POST)) {
-            // TODO FIXME
+            exchange.setMethod(HttpMethods.POST);
         }
 
         // configure parameters
