@@ -1,4 +1,4 @@
-package com.treasure_data.newclient.model.transform;
+package com.treasure_data.newclient.model.gen;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -10,9 +10,9 @@ import com.treasure_data.newclient.model.ItemTable;
 import com.treasure_data.newclient.model.LogTable;
 import com.treasure_data.newclient.model.Table;
 
-public class JsonListTablesIntializer extends AbstractJsonResponseModelInitializer<List<Table>> {
+public class JsonListTablesGen extends AbstractJsonResponseModelGen<List<Table>> {
 
-    public JsonListTablesIntializer() {
+    public JsonListTablesGen() {
     }
 
     public List<Table> create(ResponseParser<List<Table>> p)

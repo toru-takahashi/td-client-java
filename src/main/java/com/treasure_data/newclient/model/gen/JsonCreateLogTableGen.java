@@ -1,4 +1,4 @@
-package com.treasure_data.newclient.model.transform;
+package com.treasure_data.newclient.model.gen;
 
 import java.util.Map;
 
@@ -6,8 +6,8 @@ import com.treasure_data.newclient.TreasureDataClientException;
 import com.treasure_data.newclient.model.LogTable;
 import com.treasure_data.newclient.model.Table;
 
-public class JsonCreateLogTableInitializer extends
-        AbstractJsonResponseModelInitializer<LogTable> {
+public class JsonCreateLogTableGen extends
+        AbstractJsonResponseModelGen<LogTable> {
 
     @Override
     public LogTable create(ResponseParser<LogTable> p)

@@ -5,5 +5,5 @@ import java.io.InputStream;
 public interface Response {
 
     InputStream getContent();
-    void setContent(InputStream content);
+    void setContent(InputStream in);
 }

@@ -1,4 +1,4 @@
-package com.treasure_data.newclient.model.transform;
+package com.treasure_data.newclient.model.gen;
 
 import java.util.Map;
 
@@ -6,7 +6,7 @@ import com.treasure_data.newclient.TreasureDataClientException;
 import com.treasure_data.newclient.TreasureDataServiceException;
 
 public class JsonExceptionGen extends
-        AbstractJsonResponseModelInitializer<TreasureDataServiceException> {
+        AbstractJsonResponseModelGen<TreasureDataServiceException> {
 
     private static final String MESSAGE = "message";
 

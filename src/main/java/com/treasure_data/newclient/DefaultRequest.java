@@ -1,20 +1,24 @@
 package com.treasure_data.newclient;
 
 import java.io.InputStream;
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.treasure_data.newclient.auth.Signer;
+import com.treasure_data.newclient.auth.TreasureDataCredentials;
 import com.treasure_data.newclient.model.TreasureDataServiceRequest;
 
 public class DefaultRequest<T extends TreasureDataServiceRequest> implements Request<T> {
 
-    private String resourcePath;
+    private final T originalRequest;
+
     private Map<String, String> parameters = new HashMap<String, String>();
     private Map<String, String> headers = new HashMap<String, String>();
-    private URI endpoint;
+    private String endpoint;
+    private String resourcePath;
 
-    private final T originalRequest;
+    private TreasureDataCredentials credentials;
+    private Signer signer;
 
     private MethodName methodName;
     private InputStream content;
@@ -25,6 +29,22 @@ public class DefaultRequest<T extends TreasureDataServiceRequest> implements Req
 
     public TreasureDataServiceRequest getOriginalRequest() {
         return originalRequest;
+    }
+
+    public TreasureDataCredentials getCredentials() {
+        return credentials;
+    }
+
+    public void setCredentials(TreasureDataCredentials credentials) {
+        this.credentials = credentials;
+    }
+
+    public void setSigner(Signer signer) {
+        this.signer = signer;
+    }
+
+    public Signer getSinger() {
+        return signer;
     }
 
     @Override
@@ -70,12 +90,12 @@ public class DefaultRequest<T extends TreasureDataServiceRequest> implements Req
     }
 
     @Override
-    public void setEndpoint(URI endpoint) {
+    public void setEndpoint(String endpoint) {
         this.endpoint = endpoint;
     }
 
     @Override
-    public URI getEndpoint() {
+    public String getEndpoint() {
         return endpoint;
     }
 

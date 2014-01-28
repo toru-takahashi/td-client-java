@@ -1,14 +1,12 @@
 package com.treasure_data.newclient;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Properties;
 
 public class Configuration implements Constants {
 
-    private Properties props;
+    protected Properties props;
 
-    protected URI endpoint;
+    protected String endpoint;
 
     public Configuration(Properties props) {
         this.props = props;
@@ -19,14 +17,11 @@ public class Configuration implements Constants {
     }
 
     public void setEndpoint() {
-        try {
-            endpoint = new URI("http://api.treasure-data.com:80/");
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
+        // TODO FIXME this constant value should be declared in Constants class
+        endpoint = "http://api.treasure-data.com:80/";
     }
 
-    public URI getEndpoint() {
+    public String getEndpoint() {
         if (endpoint == null) {
             setEndpoint();
         }

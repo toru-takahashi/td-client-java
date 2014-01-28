@@ -1,4 +1,4 @@
-package com.treasure_data.newclient.model.transform;
+package com.treasure_data.newclient.model.gen;
 
 import java.io.IOException;
 

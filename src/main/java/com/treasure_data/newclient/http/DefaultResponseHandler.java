@@ -6,7 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.treasure_data.newclient.TreasureDataClientException;
-import com.treasure_data.newclient.model.transform.Unmarshaller;
+import com.treasure_data.newclient.model.gen.Unmarshaller;
 
 public class DefaultResponseHandler<M> extends AbstractResponseHandler<M> {
     private static final Logger LOG = Logger.getLogger(DefaultResponseHandler.class.getName());

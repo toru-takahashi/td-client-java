@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import com.treasure_data.newclient.TreasureDataClientException;
-import com.treasure_data.newclient.model.transform.Unmarshaller;
+import com.treasure_data.newclient.model.gen.Unmarshaller;
 
 public abstract class AbstractResponseHandler<M>
         implements ResponseHandler<M> {

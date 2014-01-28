@@ -1,4 +1,4 @@
-package com.treasure_data.newclient.model.transform;
+package com.treasure_data.newclient.model.gen;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -7,8 +7,8 @@ import org.json.simple.JSONValue;
 
 import com.treasure_data.newclient.TreasureDataClientException;
 
-public abstract class AbstractJsonResponseModelInitializer<M> extends AbstractResponseModelInitializer<M> {
-    private static final Logger LOG = Logger.getLogger(AbstractJsonResponseModelInitializer.class.getName());
+public abstract class AbstractJsonResponseModelGen<M> extends AbstractResponseModelGen<M> {
+    private static final Logger LOG = Logger.getLogger(AbstractJsonResponseModelGen.class.getName());
 
     protected Object parseJsonObject(ResponseParser<M> p) throws TreasureDataClientException {
         validateResponseParser(p);

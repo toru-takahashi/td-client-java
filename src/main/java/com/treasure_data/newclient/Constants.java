@@ -37,4 +37,6 @@ public interface Constants {
 
     // max exponential back-off time before retrying a request
     int MAX_BACKOFF_IN_MILLISECONDS = 20 * 1000; // millis
+
+    int HTTP_OK = 200;
 }

@@ -1,11 +1,11 @@
-package com.treasure_data.newclient.model.transform;
+package com.treasure_data.newclient.model.gen;
 
 import java.util.Map;
 
 import com.treasure_data.newclient.TreasureDataClientException;
 import com.treasure_data.newclient.model.ServerStatus;
 
-public class JsonGetServerStatusIntializer extends AbstractJsonResponseModelInitializer<ServerStatus> {
+public class JsonGetServerStatusGen extends AbstractJsonResponseModelGen<ServerStatus> {
 
     @Override
     public ServerStatus create(ResponseParser<ServerStatus> p)

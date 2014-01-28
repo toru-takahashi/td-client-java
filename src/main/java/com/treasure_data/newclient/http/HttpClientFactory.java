@@ -7,8 +7,8 @@ import com.treasure_data.newclient.Configuration;
 import com.treasure_data.newclient.TreasureDataClientException;
 
 public class HttpClientFactory {
-
-    public HttpClient createHttpClient(Configuration conf) throws TreasureDataClientException {
+    public HttpClient createHttpClient(Configuration conf)
+            throws TreasureDataClientException {
         HttpClient httpClient = new HttpClient();
 
         // manage thread pooling
@@ -20,7 +20,7 @@ public class HttpClientFactory {
         //http.setTimeout(60000);
         //http.setIdleTimeout(1000);
         //http.setMaxConnectionsPerAddress(6);
-        
+
         return httpClient;
     }
 }

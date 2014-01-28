@@ -2,15 +2,13 @@ package com.treasure_data.newclient.http;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.jetty.client.ContentExchange;
 import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.client.HttpExchange;
 import org.eclipse.jetty.http.HttpMethods;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 import com.treasure_data.newclient.Configuration;
 import com.treasure_data.newclient.Request;
@@ -24,7 +22,6 @@ public class TreasureDataHttpClient implements Closeable {
 
     private Configuration conf;
     private HttpClient httpClient;
-
     private HttpClientFactory httpClientFactory = new HttpClientFactory();
     private HttpContentFactory httpContentFactory = new HttpContentFactory();
 
@@ -42,12 +39,9 @@ public class TreasureDataHttpClient implements Closeable {
     public <M, REQ extends TreasureDataServiceRequest> M execute(
             Request<REQ> request,
             ResponseHandler<M> responseHandler,
-            ResponseHandler<TreasureDataServiceException> errorResponseHandler,
-            ExecutionContext context)
+            ResponseHandler<TreasureDataServiceException> errorResponseHandler)
                     throws TreasureDataClientException, TreasureDataServiceException {
-        // null check
-        if (request == null || responseHandler == null
-                || errorResponseHandler == null || context == null) {
+        if (request == null || responseHandler == null || errorResponseHandler == null) {
             RuntimeException e = new NullPointerException(
                     "Internal Error: some of arguments are null.");
             LOG.log(Level.SEVERE, e.getMessage(), e);
@@ -57,34 +51,19 @@ public class TreasureDataHttpClient implements Closeable {
         int retryCount = 0;
         TreasureDataServiceException exception = null;
 
-        // make a copy of the original request parameters
-        Map<String, String> originalParameters = new HashMap<String, String>();
-        originalParameters.putAll(request.getParameters());
-
-        // make a copy of the original request headers
-        Map<String, String> originalHeaders = new HashMap<String, String>();
-        originalHeaders.putAll(request.getHeaders());
+        // sign the rquest if a signer was provided
+        if (request.getSinger() != null && request.getCredentials() != null) {
+            request.getSinger().sign(request, request.getCredentials());
+        }
 
         while (true) {
-            if (retryCount > 0) {
-                request.setParameters(originalParameters);
-                request.setHeaders(originalHeaders);
-            }
-
-            ContentExchange exchange = null;
-
             try {
-                // sign the rquest if a signer was provided
-                if (context.getSinger() != null && context.getCredentials() != null) {
-                    context.getSinger().sign(request, context.getCredentials());
-                }
-
                 if (LOG.isLoggable(Level.FINE)) {
                     LOG.fine(String.format("Send the request %s (retryCount=%d)",
                             request, retryCount));
                 }
-
-                exchange = httpContentFactory.createHttpContent(request, conf, context);
+                
+                ContentExchange exchange = httpContentFactory.createHttpContent(request, conf);
 
                 // pause exponentially
                 if (retryCount > 0) {
@@ -95,7 +74,6 @@ public class TreasureDataHttpClient implements Closeable {
                 httpClient.send(exchange);
                 try {
                     int code = exchange.waitForDone();
-                    System.out.println("code: " + code);
                 } catch (InterruptedException e) { // TODO FIXME
                     throw new TreasureDataClientException("interrupted");
                 }
@@ -103,7 +81,8 @@ public class TreasureDataHttpClient implements Closeable {
                 if (isRequestSuccessful(exchange.getResponseStatus())) {
                     return handleResponse(request, responseHandler, exchange);
                 } else {
-//                    exception = handleErrorResponse(request, errorResponseHandler);
+                    exception = handleErrorResponse(request, errorResponseHandler, exchange);
+
 //
 //                    if (!shouldRetry(httpRequest, exception, retryCount)) {
 //                        throw exception;
@@ -124,19 +103,8 @@ public class TreasureDataHttpClient implements Closeable {
                 resetRequestAfterError(request, e);
             } finally {
                 retryCount++;
-//
-//                try {
-//                    exchange.get
-//                    httpResponse.getEntity().getContent().close();
-//                } catch (Throwable t) {
-//                    LOG.log(Level.FINE, "during close method", t);
-//                }
             }
         }
-    }
-
-    private boolean isRequestSuccessful(int status) {
-        return status / 100 == 2; // 200 / 100
     }
 
     private void pauseExponentially(final int retryCount) throws TreasureDataClientException {
@@ -153,33 +121,31 @@ public class TreasureDataHttpClient implements Closeable {
         }
     }
 
+    private boolean isRequestSuccessful(int status) {
+        return status / 100 == Configuration.HTTP_OK / 100;
+    }
+
     private <M, REQ extends TreasureDataServiceRequest> M handleResponse(
             Request<REQ> request,
             ResponseHandler<M> responseHandler,
             ContentExchange exchange)
                     throws IOException, TreasureDataClientException {
         try {
-            //int code = HttpExchange.STATUS_COMPLETED;
-            return null;
-//            exchange.get
-//            CountingInputStream countingInputStream =
-//                    new CountingInputStream(httpResponse.getContent());
-//            httpResponse.setContent(countingInputStream);
-//            TreasureDataServiceResponse<M> response = responseHandler.handle(httpResponse);
-//            return response.getResult();
+            Response response = new DefaultResponse();
+            response.setContent(((HttpContentFactory.TreasureDataContentExchange) exchange).getContent());
+            return responseHandler.handle(response);
         } catch (Exception e) {
             String errorMessage = "Unable to unmarshall response (" + e.getMessage() + ")";
             throw new TreasureDataClientException(errorMessage, e);
         }
     }
 
-//    private <REQ> TreasureDataServiceException handleErrorResponse(
-//            Request<REQ> request,
-//            HttpResponseHandler<TreasureDataServiceResponse<TreasureDataServiceException>> errorResponseHandler,
-//            HttpRequestBase httpRequest,
-//            org.apache.http.HttpResponse apacheHttpResponse,
-//            ExecutionContext context)
-//                    throws IOException, TreasureDataServiceException {
+    private <REQ extends TreasureDataServiceRequest> TreasureDataServiceException handleErrorResponse(
+            Request<REQ> request,
+            ResponseHandler<TreasureDataServiceException> errorResponseHandler,
+            ContentExchange exchange)
+                    throws IOException, TreasureDataServiceException {
+        TreasureDataServiceException exception = null;
 //        HttpResponse httpResponse = createResponse(request, httpRequest, apacheHttpResponse);
 //        StatusLine stat = apacheHttpResponse.getStatusLine();
 //        int status = stat.getStatusCode();
@@ -209,9 +175,9 @@ public class TreasureDataHttpClient implements Closeable {
 //
 //        exception.setStatusCode(status);
 //        exception.fillInStackTrace();
-//        return exception;
-//    }
-//
+        return exception;
+    }
+
 //    private <REQ> HttpResponse createResponse(
 //            Request<REQ> request,
 //            HttpRequestBase method,

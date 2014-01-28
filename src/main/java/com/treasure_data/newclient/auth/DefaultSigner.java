@@ -27,8 +27,10 @@ public class DefaultSigner implements Signer {
     }
 
     @Override
-    public <REQ extends TreasureDataServiceRequest> void sign(Request<REQ> request, TreasureDataCredentials credentials)
-            throws TreasureDataClientException {
+    public <REQ extends TreasureDataServiceRequest> void sign(
+            Request<REQ> request,
+            TreasureDataCredentials credentials)
+                    throws TreasureDataClientException {
 
         if (request.getOriginalRequest() instanceof GetServerStatusRequest) {
             LOG.fine("Signature is not needed for GetServerStatusRequest");
