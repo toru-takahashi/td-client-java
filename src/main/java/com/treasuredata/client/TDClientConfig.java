@@ -20,9 +20,11 @@ package com.treasuredata.client;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.google.common.io.Files;
+import com.google.common.net.HostAndPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +36,8 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Properties;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * TD Client configuration
@@ -293,19 +297,50 @@ public class TDClientConfig
     private static void parseEndpoint(Properties p)
     {
         String endpoint = p.getProperty("endpoint");
-        URI uri;
+
+        if (isNullOrEmpty(endpoint)) {
+            return;
+        }
+
+        // Try parsing as URI
+        Optional<URI> uri;
         try {
-            uri = new URI(endpoint);
+            uri = Optional.of(new URI(endpoint));
         }
         catch (URISyntaxException ignore) {
-            // The endpoint was not a URL, let it be as is
+            uri = Optional.absent();
+        }
+
+        // Try parsing as host:port
+        Optional<HostAndPort> hostAndPort;
+        try {
+            hostAndPort = Optional.of(HostAndPort.fromString(endpoint));
+        } catch (IllegalArgumentException e) {
+            hostAndPort = Optional.absent();
+        }
+
+        String host = null;
+        if (uri.isPresent()) {
+            host = uri.get().getHost();
+        }
+        if (host == null && hostAndPort.isPresent()) {
+            host = hostAndPort.get().getHostText();
+        }
+        if (isNullOrEmpty(host)) {
             return;
         }
 
         int defaultPort;
         boolean useSsl;
 
-        switch (uri.getScheme()) {
+        String scheme;
+        if (uri.isPresent() && ! Strings.isNullOrEmpty(uri.get().getScheme())) {
+            scheme = uri.get().getScheme();
+        } else {
+            scheme = "http";
+        }
+
+        switch (scheme) {
             case "http":
                 defaultPort = 80;
                 useSsl = false;
@@ -315,13 +350,20 @@ public class TDClientConfig
                 useSsl = true;
                 break;
             default:
-                throw new IllegalArgumentException("Invalid endpoint scheme: " + uri.getScheme());
+                throw new IllegalArgumentException("Invalid endpoint scheme: " + scheme);
         }
 
-        p.setProperty("endpoint", uri.getHost());
+        p.setProperty("endpoint", host);
 
         if (!p.containsKey("port")) {
-            int port = (uri.getPort() == -1) ? defaultPort : uri.getPort();
+            int port;
+            if (uri.isPresent() && uri.get().getPort() != -1) {
+                port = uri.get().getPort();
+            } else if (hostAndPort.isPresent() && hostAndPort.get().hasPort()) {
+                port = hostAndPort.get().getPort();
+            } else {
+                port = defaultPort;
+            }
             p.setProperty("port", Integer.toString(port));
         }
 
